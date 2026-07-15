@@ -84,8 +84,33 @@ body, .cd-box, .video-frame, .dossier, .bubble-sheet, .marquee{
     radial-gradient(circle at 62.5% 62.5%, rgba(212,175,55,.08) 0 3px, transparent 4px) 0 0/50px 50px,
     radial-gradient(ellipse at 85% 85%, rgba(156,28,46,.16), transparent 60%);
 }
+/* the background pattern itself intensifies as the deadline nears —
+   applied only to this one small fixed layer, so it stays cheap */
+#themeBg{transition:filter 2s ease, background 1.1s ease;}
+body.stress-1 #themeBg{filter:saturate(1.1);}
+body.stress-2 #themeBg{filter:saturate(1.25) brightness(.97);}
+body.stress-3 #themeBg{filter:saturate(1.5) brightness(.93);}
+body.stress-4 #themeBg{filter:saturate(1.8) brightness(.88) hue-rotate(-6deg);}
+body.stress-5 #themeBg{filter:saturate(2.1) brightness(.82) hue-rotate(-10deg);}
+body.stress-6 #themeBg{filter:saturate(2.4) brightness(.76) hue-rotate(-14deg);}
+/* finale: once the countdown hits zero, the whole atmosphere flips from
+   dread-red to an exhausted, washed-out "it's over" calm */
+body.finale #themeBg{
+  filter:none !important;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(107,143,113,.22), transparent 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(227,167,46,.16), transparent 60%) !important;
+}
+body.finale #dreadVignette{
+  background:radial-gradient(ellipse at center, transparent 45%, rgba(107,143,113,.4) 100%) !important;
+  opacity:.55 !important;animation:none !important;
+}
+body.finale #flickerOverlay{display:none;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
+@media (hover:none) and (pointer:coarse){
+  html{scroll-behavior:auto;}
+}
 body{
   background:var(--ink);
   color:var(--paper);
@@ -187,6 +212,11 @@ html.low-end .confetti-bg::before{opacity:.25;}
 .nose-flake.photo-flake{text-shadow:none;}
 @keyframes nose-fall{
   to{ transform:translateY(115vh) translateX(var(--drift,0px)) rotate(var(--spin,360deg)); }
+}
+@keyframes confetti-fall{
+  0%{transform:translateY(0) translateX(0) rotate(0deg);opacity:0;}
+  8%{opacity:1;}
+  100%{transform:translateY(108vh) translateX(var(--drift,0px)) rotate(var(--spin,450deg));opacity:.9;}
 }
 
 /* ============ FINISHED STATE ============ */
@@ -330,7 +360,7 @@ body.jolt .jolt-flash{animation:jolt-flash-anim .5s ease-out;}
 #themeBtn:active{transform:translateY(4px);box-shadow:0 4px 0 var(--sage-dark), 0 8px 16px rgba(0,0,0,.4);}
 @media(max-width:520px){
   #noseBtn{bottom:1rem;left:1rem;padding:.55rem .9rem;font-size:.78rem;}
-  #themeBtn{bottom:4.6rem;left:1rem;padding:.55rem .9rem;font-size:.78rem;}
+  #themeBtn{bottom:1rem;left:auto;right:1rem;padding:.55rem .9rem;font-size:.78rem;}
 }
 .nose-flake.photo-flake{
   width:52px;height:52px;border-radius:12px;overflow:hidden;
@@ -347,6 +377,52 @@ body.jolt .jolt-flash{animation:jolt-flash-anim .5s ease-out;}
   transition:opacity .9s ease, visibility .9s ease;
 }
 #loader.hide{opacity:0;visibility:hidden;pointer-events:none;}
+.loader-stage-wrap{
+  position:relative;width:220px;height:220px;
+  display:flex;align-items:center;justify-content:center;
+}
+.loader-sunburst{
+  position:absolute;inset:-70px;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    transparent 0deg, rgba(227,167,46,.4) 8deg, transparent 22deg,
+    transparent 90deg, rgba(179,38,30,.35) 98deg, transparent 112deg,
+    transparent 180deg, rgba(227,167,46,.4) 188deg, transparent 202deg,
+    transparent 270deg, rgba(179,38,30,.35) 278deg, transparent 292deg,
+    transparent 360deg);
+  filter:blur(6px);
+  animation:sunburst-spin 7s linear infinite;
+  z-index:-1;
+}
+@keyframes sunburst-spin{
+  from{transform:rotate(0deg);}
+  to{transform:rotate(360deg);}
+}
+.loader-ring{
+  position:absolute;inset:0;width:100%;height:100%;
+  transform:rotate(-90deg);
+  filter:drop-shadow(0 0 8px rgba(227,167,46,.6));
+}
+.loader-ring .ring-track{
+  fill:none;stroke:rgba(255,255,255,.08);stroke-width:5;
+}
+.loader-ring .ring-fill{
+  fill:none;stroke:url(#loaderRingGrad);stroke-width:5;stroke-linecap:round;
+  stroke-dasharray:628.3;stroke-dashoffset:628.3;
+  transition:stroke-dashoffset .22s ease;
+}
+.loader-scanline{
+  position:absolute;left:0;right:0;height:3px;top:0;
+  background:linear-gradient(90deg, transparent, rgba(227,167,46,.85), transparent);
+  box-shadow:0 0 18px 3px rgba(227,167,46,.5);
+  animation:scanline-sweep 2.8s ease-in-out infinite;
+}
+@keyframes scanline-sweep{
+  0%{top:8%;opacity:0;}
+  10%{opacity:1;}
+  50%{top:92%;opacity:1;}
+  60%{opacity:0;}
+  100%{top:8%;opacity:0;}
+}
 .flip-stage{
   width:180px;height:180px;perspective:900px;
   position:relative;
@@ -490,7 +566,7 @@ section{position:relative;}
 
 /* ---- HERO / COUNTDOWN ---- */
 #hero{
-  min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;padding:6rem 1.25rem 4rem;
   background:
     radial-gradient(ellipse at 50% -10%, rgba(227,167,46,.12), transparent 55%),
@@ -658,7 +734,7 @@ section{position:relative;}
   position:relative;height:340vh;
 }
 .scrolly-inner{
-  position:sticky;top:0;height:100svh;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;height:100svh;display:flex;flex-direction:column;
   align-items:center;justify-content:center;overflow:hidden;
   background:var(--ink);
 }
@@ -838,6 +914,31 @@ section{position:relative;}
 .tl-content b{display:block;font-family:var(--font-display);font-size:1.05rem;color:var(--stamp-dark);margin-bottom:.3rem;}
 .tl-content span{font-size:.88rem;color:#5c5138;line-height:1.7;}
 
+/* ---- EXCUSE SLOT MACHINE ---- */
+.excuse-section{padding:6rem 0;background:var(--paper);color:var(--ink);}
+.excuse-section h2{font-family:var(--font-display);font-size:clamp(1.7rem,5vw,2.4rem);color:var(--stamp-dark);margin-bottom:.5rem;}
+.excuse-section .lead{color:#5c5138;max-width:460px;margin:0 auto 2.25rem;}
+.excuse-machine{max-width:420px;margin:0 auto;}
+.excuse-reel-window{
+  background:var(--ink);border:4px solid var(--ink);border-radius:14px;
+  min-height:90px;display:flex;align-items:center;justify-content:center;
+  padding:1rem 1.25rem;box-shadow:inset 0 4px 14px rgba(0,0,0,.6), 6px 6px 0 var(--stamp);
+  overflow:hidden;
+}
+.excuse-reel{
+  font-family:var(--font-display);font-size:1.15rem;color:var(--paper-soft);
+  text-align:center;line-height:1.6;
+}
+.excuse-reel.spinning{filter:blur(1.5px);opacity:.7;}
+#excuseBtn{
+  margin-top:1.5rem;background:var(--mustard);color:var(--ink);
+  border:3px solid var(--ink);border-radius:99px;padding:.85rem 1.8rem;
+  font-family:var(--font-body);font-weight:800;font-size:1rem;cursor:pointer;
+  box-shadow:0 6px 0 var(--stamp-dark);transition:transform .1s ease, box-shadow .1s ease;
+}
+#excuseBtn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--stamp-dark);}
+#excuseBtn:disabled{opacity:.6;cursor:not-allowed;}
+
 /* ---- STICKY NOTE WALL ---- */
 .sticker-wall-section{padding:6rem 0;background:var(--paper);}
 .sticker-wall-section h2{font-family:var(--font-display);font-size:clamp(1.7rem,5vw,2.4rem);color:var(--stamp-dark);margin-bottom:.5rem;}
@@ -980,7 +1081,20 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
 <!-- ===================== LOADER ===================== -->
 <div id="loader">
   <div class="loader-particles" id="loaderParticles" aria-hidden="true"></div>
-  <div class="flip-stage">
+  <div class="loader-scanline" aria-hidden="true"></div>
+  <div class="loader-stage-wrap">
+    <div class="loader-sunburst" aria-hidden="true"></div>
+    <svg class="loader-ring" viewBox="0 0 220 220" aria-hidden="true">
+      <defs>
+        <linearGradient id="loaderRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--mustard)"/>
+          <stop offset="100%" stop-color="var(--stamp)"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-track" cx="110" cy="110" r="100"/>
+      <circle class="ring-fill" id="loaderRing" cx="110" cy="110" r="100"/>
+    </svg>
+    <div class="flip-stage">
     <div class="flip-card">
       <div class="flip-face nose" aria-hidden="true">
         <svg width="92" height="92" viewBox="0 0 100 100" fill="none">
@@ -1004,6 +1118,7 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
           <circle cx="50" cy="16" r="4.5" fill="#b3261e" opacity=".85"/>
         </svg>
       </div>
+    </div>
     </div>
   </div>
   <div class="loader-caption" id="loaderCaption">بدبختی نزدیکه دماغ 😬</div>
@@ -1122,6 +1237,18 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
       <div class="tl-item reveal-io delay-2"><div class="tl-dot">😰</div><div class="tl-content"><b>۱ هفته مونده</b><span>«چرا هیچی یادم نمیاد؟! خودمم نمی‌دونم چی خوندم.»</span></div></div>
       <div class="tl-item reveal-io delay-3"><div class="tl-dot">🥵</div><div class="tl-content"><b>۱ روز مونده</b><span>«بی‌خیال، شاید بوعلی تو خواب راهم بده.»</span></div></div>
       <div class="tl-item reveal-io"><div class="tl-dot">💀</div><div class="tl-content"><b>لحظهٔ موعود</b><span>«هه... تموم شد بدبخت.»</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== EXCUSE SLOT MACHINE ===================== -->
+<section class="excuse-section grain">
+  <div class="wrap" style="text-align:center;">
+    <h2 class="reveal-io">ماشین بهانه‌ساز دماغ 🎰</h2>
+    <p class="lead reveal-io delay-1">دکمه رو بزن، یه بهونهٔ تازه برای نخوندن تحویل بگیر:</p>
+    <div class="excuse-machine reveal-io delay-2">
+      <div class="excuse-reel-window"><div class="excuse-reel" id="excuseReel">بهونه‌ت اینجا میاد...</div></div>
+      <button id="excuseBtn" type="button">🎰 بهونه بده!</button>
     </div>
   </div>
 </section>
@@ -1374,9 +1501,13 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
 
 <script>
 /* ================= SHARED LOW-END DEVICE HEURISTIC =================
-   Used to scale back animation frequency/intensity on weaker phones —
-   fewer CPU cores is a rough but decent signal. */
-const IS_LOW_END = (navigator.hardwareConcurrency || 8) <= 4;
+   Used to scale back animation frequency/intensity on weaker phones.
+   iOS is excluded: Safari reports low hardwareConcurrency on iPhones
+   even though Apple's chips handle this fine — the throttle is aimed
+   at genuinely weak Android devices. */
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_LOW_END = !IS_IOS && (navigator.hardwareConcurrency || 8) <= 4;
 document.documentElement.classList.toggle('low-end', IS_LOW_END);
 
 /* ================= VIDEO SOURCES: convert data-URI -> Blob URL =================
@@ -1426,11 +1557,62 @@ function getTarget(now){
   if (t <= now) t.setUTCDate(t.getUTCDate() + 7);
   return t;
 }
+// IMPORTANT: compute the target ONCE at load time and reuse it everywhere.
+// Recomputing "next Thursday" fresh on every tick would mean the target
+// keeps rolling forward right at the deadline instant (since "next Thursday
+// from now" is always in the future by construction) — the countdown would
+// never actually reach zero. Caching it means it counts down to one fixed
+// moment and can genuinely finish.
+const COUNTDOWN_TARGET = getTarget(new Date());
 
 let hasFinished = false;
+
+function triggerFinale(){
+  document.body.classList.add('finale');
+  document.body.classList.remove('stress-1','stress-2','stress-3','stress-4','stress-5','stress-6');
+
+  const finaleLines = [
+    '🎉 تمومه دیگه 🎉 &nbsp; دماغ آزاد شد (فعلاً) &nbsp; 😮‍💨 &nbsp; حالا نوبت نتیجه‌ست... 👀',
+    '🥳 جلسه تموم شد 🥳 &nbsp; قلیون رو روشن کن، حقته &nbsp; 😮‍💨 &nbsp; دیگه بهونه‌ای نمونده برای تعطیلات 🏖️',
+  ];
+  document.querySelectorAll('.marquee-track').forEach((track, i) => {
+    const line = finaleLines[i % finaleLines.length];
+    track.querySelectorAll('span').forEach(span => { span.innerHTML = line; });
+  });
+
+  fireConfetti();
+}
+
+function fireConfetti(){
+  const layer = document.createElement('div');
+  layer.id = 'confettiLayer';
+  layer.style.cssText = 'position:fixed;inset:0;z-index:498;pointer-events:none;overflow:hidden;';
+  document.body.appendChild(layer);
+  const colors = ['var(--mustard)','var(--stamp)','var(--sage)','var(--pink)','var(--violet)','var(--sky)'];
+  const count = IS_LOW_END ? 26 : 60;
+  for (let i = 0; i < count; i++){
+    const piece = document.createElement('span');
+    const left = Math.random() * 100;
+    const size = 6 + Math.random() * 8;
+    const dur = 2.6 + Math.random() * 2.2;
+    const delay = Math.random() * 0.6;
+    const drift = (Math.random() * 200 - 100) + 'px';
+    const spin = (Math.random() * 900 - 450) + 'deg';
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const round = Math.random() < 0.5;
+    piece.style.cssText =
+      'position:absolute;top:-24px;left:' + left + 'vw;width:' + size + 'px;height:' + (size * 1.4) + 'px;' +
+      'background:' + color + ';opacity:.95;' + (round ? 'border-radius:50%;' : 'border-radius:2px;') +
+      '--drift:' + drift + ';--spin:' + spin + ';' +
+      'animation:confetti-fall ' + dur + 's ease-in ' + delay + 's forwards;';
+    layer.appendChild(piece);
+  }
+  setTimeout(() => layer.remove(), 5200);
+}
+
 function tick(){
   const now = new Date();
-  const target = getTarget(now);
+  const target = COUNTDOWN_TARGET;
   let ms = target - now;
   const isOver = ms <= 0;
 
@@ -1442,6 +1624,7 @@ function tick(){
       document.getElementById('miniClock').style.display = 'none';
       document.getElementById('finishedBox').classList.add('show');
       document.getElementById('finishedBox2').classList.add('show');
+      triggerFinale();
     }
     return;
   }
@@ -1648,7 +1831,7 @@ setInterval(tick, 1000);
 
   let currentLevel = -1;
   function refreshStress(){
-    const target = getTarget(new Date());
+    const target = COUNTDOWN_TARGET;
     const ms = target - new Date();
     const level = stressLevelFromMs(ms);
     if (level !== currentLevel){
@@ -1662,7 +1845,7 @@ setInterval(tick, 1000);
 
   // periodic dread pulse: interval shortens as deadline approaches
   function scheduleNextJolt(){
-    const target = getTarget(new Date());
+    const target = COUNTDOWN_TARGET;
     const ms = target - new Date();
     const level = stressLevelFromMs(ms);
     const base = [26000, 20000, 15000, 10000, 7000, 4500, 3000][level] || 20000;
@@ -1729,6 +1912,8 @@ setInterval(tick, 1000);
   const bar = document.getElementById('loaderBar');
   const pctEl = document.getElementById('loaderPct');
   const bowEl = document.getElementById('loaderBow');
+  const ringEl = document.getElementById('loaderRing');
+  const RING_CIRC = 628.3;
   let p = 0;
   let bowShown = false;
   const iv = setInterval(() => {
@@ -1736,6 +1921,7 @@ setInterval(tick, 1000);
     if (p >= 100) { p = 100; clearInterval(iv); }
     bar.style.width = p + '%';
     pctEl.textContent = toFa(Math.floor(p)).replace(/^۰+(?=[۱-۹])/,'') + '٪';
+    if (ringEl) ringEl.style.strokeDashoffset = String(RING_CIRC * (1 - p / 100));
     if (p >= 60 && !bowShown){
       bowShown = true;
       bowEl.classList.add('show');
@@ -1832,6 +2018,47 @@ setInterval(tick, 1000);
   dotsWrap.addEventListener('click', () => { clearInterval(auto); auto = setInterval(() => goTo((idx + 1) % cards.length), 4200); });
 })();
 
+/* ================= EXCUSE SLOT MACHINE ================= */
+(function(){
+  const btn = document.getElementById('excuseBtn');
+  const reel = document.getElementById('excuseReel');
+  if (!btn) return;
+  const excuses = [
+    'مغزم امروز آنلاین نیست 🧠📴',
+    'باید اول اتاقمو تمیز کنم، بعد می‌خونم 🧹',
+    'فردا صبح زود پا می‌شم، همه‌شو می‌خونم 🌅',
+    'گشنمه، اول باید غذا بخورم 🍕',
+    'یه قسمت دیگه از سریال مونده، تمومش کنم 📺',
+    'چراغ اتاقم اذیت می‌کنه، نور مناسب نیست 💡',
+    'باید انرژی مثبت جمع کنم اول 🔮',
+    'گوشیم داره شارژ می‌شه، تا اون تموم شه... 🔋',
+    'امروز روز نحسمه، فردا می‌خونم 🐈‍⬛',
+    'باید برم قدم بزنم، تمرکزم بیشتر شه 🚶',
+    'یه چای بریزم، بعد شروع می‌کنم ☕',
+    'دفترچه‌م گم شده... احتمالاً 📓❓',
+  ];
+  let spinning = false;
+  btn.addEventListener('click', () => {
+    if (spinning) return;
+    spinning = true;
+    btn.disabled = true;
+    reel.classList.add('spinning');
+    let ticks = 0;
+    const maxTicks = 14;
+    const spinTimer = setInterval(() => {
+      reel.textContent = excuses[Math.floor(Math.random() * excuses.length)];
+      ticks++;
+      if (ticks >= maxTicks){
+        clearInterval(spinTimer);
+        reel.classList.remove('spinning');
+        reel.textContent = excuses[Math.floor(Math.random() * excuses.length)];
+        spinning = false;
+        btn.disabled = false;
+      }
+    }, ticks < 8 ? 70 : 130);
+  });
+})();
+
 /* ================= WILLPOWER TEST MINI-GAME ================= */
 (function(){
   const btn = document.getElementById('studyBtn');
@@ -1862,6 +2089,36 @@ setInterval(tick, 1000);
   });
 })();
 
+/* ================= MASTER SCROLL LOOP =================
+   Previously each scroll-driven feature (2x video scrub + hookah smoke)
+   registered its own 'scroll' listener, each doing its own
+   getBoundingClientRect() + requestAnimationFrame scheduling. On mobile
+   that meant multiple overlapping layout reads per frame -> jank/stutter.
+   Now everything registers a callback here and runs off ONE listener
+   and ONE rAF tick per frame. */
+const SCROLL_UPDATERS = [];
+(function(){
+  let ticking = false;
+  function tick(){
+    for (let i = 0; i < SCROLL_UPDATERS.length; i++){
+      try { SCROLL_UPDATERS[i](); } catch(e){}
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking){
+      requestAnimationFrame(tick);
+      ticking = true;
+    }
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!ticking){
+      requestAnimationFrame(tick);
+      ticking = true;
+    }
+  }, { passive: true });
+})();
+
 /* ================= HOOKAH SMOKE (scroll-driven) ================= */
 (function(){
   const section = document.getElementById('hookahSection');
@@ -1883,14 +2140,7 @@ setInterval(tick, 1000);
     });
     if (coal) coal.style.filter = 'drop-shadow(0 0 ' + (3 + amt * 22) + 'px var(--stamp))';
   }
-
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking){
-      requestAnimationFrame(() => { update(); ticking = false; });
-      ticking = true;
-    }
-  }, { passive: true });
+  SCROLL_UPDATERS.push(update);
   update();
 })();
 
@@ -1935,19 +2185,13 @@ function setupScrolly(sectionId, videoId, progressId){
     if (frame) frame.classList.toggle('intense', progressRatio > 0.35);
   }
 
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking){
-      requestAnimationFrame(() => { onScroll(); ticking = false; });
-      ticking = true;
-    }
-  }, { passive: true });
-
+  SCROLL_UPDATERS.push(onScroll);
   onScroll();
 }
 
 setupScrolly('scrolly1','video1','progress1');
 setupScrolly('scrolly2','video2','progress2');
 </script>
+
 </body>
 </html>
