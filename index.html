@@ -245,12 +245,53 @@ html.low-end .confetti-bg::before{opacity:.25;}
 }
 .finished-sub{margin-top:1.25rem;color:var(--paper-dim);font-size:1rem;}
 
-/* ============ GENERIC SCROLL-REVEAL ============ */
-.reveal-io{opacity:0;transform:translateY(34px);transition:opacity .75s cubic-bezier(.2,.7,.3,1), transform .75s cubic-bezier(.2,.7,.3,1);}
-.reveal-io.in-view{opacity:1;transform:translateY(0);}
+/* ============ GENERIC SCROLL-REVEAL (now with blur-in) ============ */
+.reveal-io{
+  opacity:0;transform:translateY(34px);filter:blur(9px);
+  transition:opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1), filter .8s cubic-bezier(.2,.7,.3,1);
+  will-change:opacity, transform, filter;
+}
+.reveal-io.in-view{opacity:1;transform:translateY(0);filter:blur(0);}
 .reveal-io.delay-1{transition-delay:.1s;}
 .reveal-io.delay-2{transition-delay:.2s;}
 .reveal-io.delay-3{transition-delay:.3s;}
+html.low-end .reveal-io{filter:none;transition:opacity .6s ease, transform .6s ease;}
+
+/* ============ EMERGENCY ALERT BAR (new top-level element — final-day redesign) ============ */
+#alertBar{
+  position:fixed;top:0;left:0;right:0;z-index:600;
+  height:2.35rem;overflow:hidden;
+  background:
+    repeating-linear-gradient(135deg, #1a1006 0 18px, var(--stamp) 18px 36px);
+  border-bottom:2px solid var(--ink);
+  box-shadow:0 4px 14px rgba(0,0,0,.5);
+}
+.alert-track{
+  display:flex;height:100%;align-items:center;gap:3rem;
+  animation:alert-scroll 16s linear infinite;
+  padding-inline-end:3rem;
+  white-space:nowrap;
+}
+.alert-track span{
+  font-family:var(--font-display);font-size:.85rem;letter-spacing:.5px;
+  color:#fff8ea;text-shadow:0 1px 3px rgba(0,0,0,.6);
+  flex-shrink:0;
+}
+@keyframes alert-scroll{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+body.finale #alertBar{
+  background:repeating-linear-gradient(135deg, #0c1710 0 18px, var(--sage-dark) 18px 36px);
+}
+/* push everything below the new bar */
+#loader, #stageWrap{padding-top:2.35rem;}
+
+.hazard-divider{
+  height:14px;
+  background:repeating-linear-gradient(135deg, #1a1006 0 16px, var(--mustard) 16px 32px);
+  border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);
+}
 
 /* ============ STRESS / HORROR ATMOSPHERE SYSTEM ============ */
 #dreadVignette{
@@ -472,11 +513,19 @@ body.jolt .jolt-flash{animation:jolt-flash-anim .5s ease-out;}
   letter-spacing:.5px;
   text-align:center;
   text-shadow:2px 2px 0 var(--stamp-dark);
-  transition:opacity .3s ease, transform .3s ease;
+}
+.loader-caption.swap,
+.loader-sub.swap{
+  animation:caption-blur-swap .62s ease both;
+}
+@keyframes caption-blur-swap{
+  0%{opacity:0;filter:blur(10px);transform:translateY(6px);}
+  35%{opacity:1;filter:blur(0);transform:translateY(0);}
+  100%{opacity:1;filter:blur(0);transform:translateY(0);}
 }
 .loader-sub{
   font-size:.95rem;color:var(--paper-dim);letter-spacing:1px;
-  min-height:1.3em;transition:opacity .3s ease;
+  min-height:1.3em;
 }
 .loader-bow-badge{
   font-family:var(--font-body);font-weight:800;font-size:.95rem;
@@ -516,7 +565,8 @@ body.jolt .jolt-flash{animation:jolt-flash-anim .5s ease-out;}
   100%{opacity:0;transform:translateY(-115vh) translateX(var(--px,20px)) rotate(180deg);}
 }
 .loader-bar-track{
-  width:min(280px,70vw);height:6px;border-radius:99px;background:var(--ink-3);overflow:hidden;
+  width:min(280px,70vw);height:8px;border-radius:99px;background:var(--ink-3);overflow:hidden;
+  border:1.5px solid rgba(227,167,46,.35);
 }
 .loader-bar-fill{
   height:100%;width:0%;background:linear-gradient(90deg,var(--mustard),var(--stamp));
@@ -1065,6 +1115,12 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
 </style>
 </head>
 <body data-theme="doom">
+<div id="alertBar">
+  <div class="alert-track">
+    <span id="alertText1">🚨 هشدار پرونده — کمتر از ۲۴ ساعت تا جلسهٔ کنکور 🚨</span>
+    <span id="alertText2">🚨 هشدار پرونده — کمتر از ۲۴ ساعت تا جلسهٔ کنکور 🚨</span>
+  </div>
+</div>
 <div id="dreadVignette"></div>
 <div id="themeBg"></div>
 <div id="flickerOverlay"></div>
@@ -1165,6 +1221,8 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
     <span>📚 بخون دماغ بخون 📚 &nbsp; هه هیچی نخوندی 😂 &nbsp; 📖 استرس یعنی دماغ 📖 &nbsp; دفترچه داره صدات می‌زنه 😱</span>
   </div>
 </div>
+
+<div class="hazard-divider" aria-hidden="true"></div>
 
 <!-- ===================== HOOKAH TEMPTATION (scroll = smoke) ===================== -->
 <section class="hookah-section grain" id="hookahSection">
@@ -1424,6 +1482,8 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
   </div>
 </section>
 
+<div class="hazard-divider" aria-hidden="true"></div>
+
 <!-- ===================== WITNESS TESTIMONIALS ===================== -->
 <section class="witness-section grain confetti-bg">
   <div class="wrap">
@@ -1471,6 +1531,8 @@ footer .tiny{font-size:.72rem;color:#5b5f6a;margin-top:2rem;}
   </div>
 </section>
 
+<div class="hazard-divider" aria-hidden="true"></div>
+
 <!-- ===================== FINAL VERDICT ===================== -->
 <section class="verdict-section grain">
   <div class="wrap" style="max-width:640px;">
@@ -1509,6 +1571,34 @@ const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const IS_LOW_END = !IS_IOS && (navigator.hardwareConcurrency || 8) <= 4;
 document.documentElement.classList.toggle('low-end', IS_LOW_END);
+
+/* ================= MASTER SCROLL LOOP =================
+   Every scroll-driven feature on the page (video scrub x2, hookah
+   smoke, scroll-reveal fallback) registers a callback here instead of
+   adding its own 'scroll' listener. One listener, one rAF tick per
+   frame, no duplicate layout reads fighting each other on mobile. */
+const SCROLL_UPDATERS = [];
+(function(){
+  let ticking = false;
+  function tick(){
+    for (let i = 0; i < SCROLL_UPDATERS.length; i++){
+      try { SCROLL_UPDATERS[i](); } catch(e){}
+    }
+    ticking = false;
+  }
+  window.addEventListener('scroll', () => {
+    if (!ticking){
+      requestAnimationFrame(tick);
+      ticking = true;
+    }
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    if (!ticking){
+      requestAnimationFrame(tick);
+      ticking = true;
+    }
+  }, { passive: true });
+})();
 
 /* ================= VIDEO SOURCES: convert data-URI -> Blob URL =================
    iOS Safari is unreliable playing <video> straight from a base64 data: URI,
@@ -1567,9 +1657,35 @@ const COUNTDOWN_TARGET = getTarget(new Date());
 
 let hasFinished = false;
 
+function updateAlertBar(ms, level){
+  const t1 = document.getElementById('alertText1');
+  const t2 = document.getElementById('alertText2');
+  if (!t1 || !t2) return;
+  let msg;
+  if (ms <= 0){
+    msg = '🎉 پرونده مختومه شد — دیگه تمومه، دماغ آزاده (فعلاً) 🎉';
+  } else {
+    const hours = Math.floor(ms / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    let timeStr;
+    if (hours >= 24){
+      timeStr = toFa(Math.floor(hours / 24)) + ' روز و ' + toFa(hours % 24) + ' ساعت';
+    } else if (hours >= 1){
+      timeStr = toFa(hours) + ' ساعت و ' + toFa(mins) + ' دقیقه';
+    } else {
+      timeStr = toFa(mins) + ' دقیقه';
+    }
+    const urgency = level >= 5 ? '🚨🚨 وضعیت قرمز' : level >= 3 ? '🚨 هشدار پرونده' : '📋 یادآوری پرونده';
+    msg = urgency + ' — ' + timeStr + ' تا جلسهٔ کنکور 🚨';
+  }
+  t1.textContent = msg;
+  t2.textContent = msg;
+}
+
 function triggerFinale(){
   document.body.classList.add('finale');
   document.body.classList.remove('stress-1','stress-2','stress-3','stress-4','stress-5','stress-6');
+  updateAlertBar(0, 6);
 
   const finaleLines = [
     '🎉 تمومه دیگه 🎉 &nbsp; دماغ آزاد شد (فعلاً) &nbsp; 😮‍💨 &nbsp; حالا نوبت نتیجه‌ست... 👀',
@@ -1839,6 +1955,7 @@ setInterval(tick, 1000);
       applyStress(level);
     }
     updateGauge(level, ms);
+    updateAlertBar(ms, level);
   }
   refreshStress();
   setInterval(refreshStress, 15000);
@@ -1892,21 +2009,18 @@ setInterval(tick, 1000);
   const captionEl = document.getElementById('loaderCaption');
   const subEl = document.getElementById('loaderSub');
   let capIdx = 0;
+  function swapText(el, text){
+    el.classList.remove('swap');
+    void el.offsetWidth; // force reflow so removing the class actually takes effect
+    el.textContent = text;
+    el.classList.add('swap');
+  }
+  swapText(captionEl, captions[0]);
+  swapText(subEl, subs[0]);
   const capTimer = setInterval(() => {
     capIdx = (capIdx + 1) % captions.length;
-    captionEl.style.opacity = 0;
-    subEl.style.opacity = 0;
-    setTimeout(() => {
-      captionEl.textContent = captions[capIdx];
-      subEl.textContent = subs[capIdx];
-      // force a reflow so iOS Safari actually commits the opacity:0 state
-      // with the new text before we animate back to opacity:1 — without
-      // this, WebKit batches the changes and skips the fade entirely.
-      void captionEl.offsetWidth;
-      void subEl.offsetWidth;
-      captionEl.style.opacity = 1;
-      subEl.style.opacity = 1;
-    }, 260);
+    swapText(captionEl, captions[capIdx]);
+    swapText(subEl, subs[capIdx]);
   }, 950);
 
   const bar = document.getElementById('loaderBar');
@@ -1950,9 +2064,10 @@ setInterval(tick, 1000);
   }, 5000);
 })();
 
-/* ================= GENERIC SCROLL-REVEAL (IntersectionObserver) ================= */
+/* ================= GENERIC SCROLL-REVEAL (IntersectionObserver + fallback) ================= */
 (function(){
-  const els = document.querySelectorAll('.reveal-io');
+  const els = Array.from(document.querySelectorAll('.reveal-io'));
+  if (!els.length) return;
   if (!('IntersectionObserver' in window)){
     els.forEach(el => el.classList.add('in-view'));
     return;
@@ -1964,8 +2079,28 @@ setInterval(tick, 1000);
         io.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+  }, { threshold: 0.01, rootMargin: '0px 0px -2% 0px' });
   els.forEach(el => io.observe(el));
+
+  // Fallback: IntersectionObserver can miss an element on very fast
+  // mobile flick-scrolls if it enters+exits between two callback
+  // frames. Our master scroll loop double-checks anything not yet
+  // revealed on every scroll frame, so nothing ever gets stuck hidden.
+  function fallbackCheck(){
+    const vh = window.innerHeight;
+    for (let i = els.length - 1; i >= 0; i--){
+      const el = els[i];
+      if (el.classList.contains('in-view')){ els.splice(i, 1); continue; }
+      const r = el.getBoundingClientRect();
+      if (r.top < vh * 0.98 && r.bottom > 0){
+        el.classList.add('in-view');
+        io.unobserve(el);
+        els.splice(i, 1);
+      }
+    }
+  }
+  SCROLL_UPDATERS.push(fallbackCheck);
+  fallbackCheck();
 })();
 
 /* ================= CONFIDENTIAL STATS COUNT-UP ================= */
@@ -2087,36 +2222,6 @@ setInterval(tick, 1000);
     fill.style.width = value + '%';
     pct.textContent = toFa(Math.round(value)) + '٪ درس خوندن';
   });
-})();
-
-/* ================= MASTER SCROLL LOOP =================
-   Previously each scroll-driven feature (2x video scrub + hookah smoke)
-   registered its own 'scroll' listener, each doing its own
-   getBoundingClientRect() + requestAnimationFrame scheduling. On mobile
-   that meant multiple overlapping layout reads per frame -> jank/stutter.
-   Now everything registers a callback here and runs off ONE listener
-   and ONE rAF tick per frame. */
-const SCROLL_UPDATERS = [];
-(function(){
-  let ticking = false;
-  function tick(){
-    for (let i = 0; i < SCROLL_UPDATERS.length; i++){
-      try { SCROLL_UPDATERS[i](); } catch(e){}
-    }
-    ticking = false;
-  }
-  window.addEventListener('scroll', () => {
-    if (!ticking){
-      requestAnimationFrame(tick);
-      ticking = true;
-    }
-  }, { passive: true });
-  window.addEventListener('resize', () => {
-    if (!ticking){
-      requestAnimationFrame(tick);
-      ticking = true;
-    }
-  }, { passive: true });
 })();
 
 /* ================= HOOKAH SMOKE (scroll-driven) ================= */
