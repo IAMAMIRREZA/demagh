@@ -1618,18 +1618,7 @@ function dataURItoBlobURL(dataURI){
   return URL.createObjectURL(blob);
 }
 
-function loadVideo(el, dataURI){
-  try{
-    el.src = dataURItoBlobURL(dataURI);
-  } catch(e){
-    el.src = dataURI; // fallback
-  }
-}
 const isMobileMock = window.matchMedia('(max-width: 720px)').matches;
-if (!isMobileMock){
-  loadVideo(document.getElementById('video1'), VIDEO_SRC_1);
-  loadVideo(document.getElementById('video2'), VIDEO_SRC_2);
-}
 
 /* ================= PERSIAN DIGITS HELPER ================= */
 const faDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -1647,13 +1636,15 @@ function getTarget(now){
   if (t <= now) t.setUTCDate(t.getUTCDate() + 7);
   return t;
 }
-// IMPORTANT: compute the target ONCE at load time and reuse it everywhere.
-// Recomputing "next Thursday" fresh on every tick would mean the target
-// keeps rolling forward right at the deadline instant (since "next Thursday
-// from now" is always in the future by construction) — the countdown would
-// never actually reach zero. Caching it means it counts down to one fixed
-// moment and can genuinely finish.
-const COUNTDOWN_TARGET = getTarget(new Date());
+// IMPORTANT: this is a ONE-TIME exam date, not a recurring weekly alarm.
+// Pin it to the actual fixed moment (Thursday, July 16 2026, 07:00 Tehran
+// = 03:30 UTC — Iran has used a fixed UTC+3:30 offset with no DST since
+// Sep 2022). Earlier this dynamically computed "next Thursday from right
+// now", which meant that once the real exam date passed, a fresh page
+// load would compute the FOLLOWING Thursday and the countdown would look
+// like it "restarted" at 7 days. A fixed date can only ever finish once
+// and stays finished.
+const COUNTDOWN_TARGET = new Date(Date.UTC(2026, 6, 16, 3, 30, 0));
 
 let hasFinished = false;
 
@@ -2250,12 +2241,14 @@ setInterval(tick, 1000);
 })();
 
 /* ================= SCROLL-SCRUBBED VIDEO PLAYBACK ================= */
-function setupScrolly(sectionId, videoId, progressId){
+function setupScrolly(sectionId, videoId, progressId, dataURI){
   const section = document.getElementById(sectionId);
   const video = document.getElementById(videoId);
   const progress = document.getElementById(progressId);
   let duration = 0;
   let ready = false;
+  let loaded = false;
+  let blobUrl = null;
 
   video.addEventListener('loadedmetadata', () => {
     duration = video.duration || 0;
@@ -2270,6 +2263,42 @@ function setupScrolly(sectionId, videoId, progressId){
       try { video.pause(); } catch(e){}
     }
   });
+
+  function loadVideoNow(){
+    if (loaded || !dataURI) return;
+    loaded = true;
+    try{
+      blobUrl = dataURItoBlobURL(dataURI);
+      video.src = blobUrl;
+    } catch(e){
+      video.src = dataURI;
+    }
+  }
+  function releaseVideo(){
+    if (!loaded) return;
+    loaded = false;
+    ready = false;
+    duration = 0;
+    try { video.pause(); } catch(e){}
+    video.removeAttribute('src');
+    video.load();
+    if (blobUrl){ URL.revokeObjectURL(blobUrl); blobUrl = null; }
+  }
+  // Only one video's decoder is ever resident at a time — loading both
+  // up front (and keeping both decoders warm) is almost certainly what
+  // caused the crash/reload right as the second video kicked in; many
+  // mobile GPUs only support one or two concurrent hardware decoders.
+  if (dataURI && 'IntersectionObserver' in window){
+    const lazyIO = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) loadVideoNow();
+        else releaseVideo();
+      });
+    }, { rootMargin: '100% 0px 100% 0px' });
+    lazyIO.observe(section);
+  } else if (dataURI){
+    loadVideoNow();
+  }
 
   function onScroll(){
     const rect = section.getBoundingClientRect();
@@ -2294,8 +2323,13 @@ function setupScrolly(sectionId, videoId, progressId){
   onScroll();
 }
 
-setupScrolly('scrolly1','video1','progress1');
-setupScrolly('scrolly2','video2','progress2');
+if (!isMobileMock){
+  setupScrolly('scrolly1','video1','progress1', VIDEO_SRC_1);
+  setupScrolly('scrolly2','video2','progress2', VIDEO_SRC_2);
+} else {
+  setupScrolly('scrolly1','video1','progress1', null);
+  setupScrolly('scrolly2','video2','progress2', null);
+}
 </script>
 
 </body>
