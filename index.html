@@ -47,7 +47,7 @@
   --font-mono: 'JetBrains Mono', monospace;
 
   --anim-speed: 1; /* multiplier, controlled from settings */
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.25, 1.15, 0.4, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -535,6 +535,9 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 }
 .msg-bubble pre:hover .code-copy{ opacity:1; }
 .code-copy:hover{ transform:scale(1.06); }
+@media (hover:none){
+  .code-copy{ opacity:.85; } /* touch devices can't hover — keep it visible */
+}
 .tok-kw{ color:var(--magenta); } .tok-str{ color:var(--gold); } .tok-com{ color:var(--ink-faint); font-style:italic; } .tok-num{ color:var(--cyan); }
 
 .type-cursor{ display:inline-block; width:2px; height:1em; background:var(--cyan); vertical-align:middle; margin-right:2px; animation:blink 1s step-end infinite; }
@@ -553,7 +556,17 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 
 /* typing indicator */
 .typing-row{ display:flex; gap:12px; align-items:center; animation:msgIn .4s var(--ease-spring) both; }
-.typing-dots{ display:flex; gap:5px; padding:16px 18px; border-radius:var(--radius-md); border-bottom-right-radius:6px; }
+.typing-dots{ display:flex; align-items:center; gap:5px; padding:16px 18px; border-radius:var(--radius-md); border-bottom-right-radius:6px; }
+.thinking-label{ font-size:.78rem; color:var(--ink-dim); margin-left:8px; animation:thinkPulse calc(1.8s / var(--anim-speed)) ease-in-out infinite; }
+@keyframes thinkPulse{ 0%,100%{ opacity:.6; } 50%{ opacity:1; } }
+
+.think-block{
+  border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:8px; font-size:.8rem;
+  animation:msgIn .4s var(--ease-spring) both;
+}
+.think-block summary{ cursor:pointer; color:var(--ink-dim); font-weight:600; list-style:none; }
+.think-block summary::-webkit-details-marker{ display:none; }
+.think-block .think-body{ margin-top:8px; color:var(--ink-faint); line-height:1.8; }
 .typing-dots span{
   width:7px; height:7px; border-radius:50%;
   background:linear-gradient(135deg, var(--violet), var(--cyan));
@@ -612,10 +625,27 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 
 .dock-btn{
   width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  transition:transform .3s var(--ease-spring), background .25s;
+  transition:transform .3s var(--ease-spring), background .25s; position:relative;
 }
 .dock-btn:hover{ background:var(--glass-fill); transform:scale(1.08); }
 .dock-btn svg{ width:17px; height:17px; }
+
+/* web-search toggle: globe icon + tiny nose badge = "دماغ اینترنت" */
+.ws-nose-badge{
+  position:absolute; bottom:0; left:0; width:14px; height:14px; border-radius:50%;
+  overflow:hidden; box-shadow:0 0 0 2px var(--void-2); opacity:.55; transition:opacity .25s, transform .25s var(--ease-spring);
+}
+.ws-nose-badge .nose-svg{ position:static; width:100%; height:100%; filter:none; animation:none; }
+#websearch-toggle.active{ background:linear-gradient(135deg, rgba(34,211,238,.25), rgba(139,92,246,.25)); }
+#websearch-toggle.active .ws-nose-badge{ opacity:1; transform:scale(1.15); }
+#websearch-toggle.active svg{ color:var(--cyan); }
+
+#think-toggle.active{ background:linear-gradient(135deg, rgba(251,191,36,.25), rgba(236,72,153,.2)); }
+#think-toggle.active svg{ color:var(--gold); }
+#think-toggle:disabled{ opacity:.35; cursor:not-allowed; }
+
+#mic-btn.recording{ background:linear-gradient(135deg, var(--danger), var(--magenta)); color:#fff; animation:micPulse calc(1.2s / var(--anim-speed)) ease-in-out infinite; }
+@keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(251,113,133,.5);} 50%{ box-shadow:0 0 0 8px rgba(251,113,133,0);} }
 
 #send-btn{
   background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff;
@@ -624,6 +654,7 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 #send-btn:hover{ transform:scale(1.1) rotate(-8deg); box-shadow:0 8px 24px rgba(139,92,246,.55); }
 #send-btn:active{ transform:scale(.92); }
 #send-btn.stop{ background:linear-gradient(135deg, var(--danger), var(--gold)); }
+#send-btn.paused{ background:linear-gradient(135deg, var(--gold), var(--violet)); }
 #send-btn svg{ transition:transform .3s var(--ease-spring); }
 
 .hint-row{ text-align:center; font-size:.68rem; color:var(--ink-faint); margin-top:8px; }
@@ -653,11 +684,33 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .field input[type=text], .field input[type=password], .field select{
   width:100%; padding:11px 14px; border-radius:var(--radius-sm); font-size:.85rem;
   background:var(--glass-fill); border:1px solid var(--glass-border); transition:border-color .25s, background .25s;
+  color:var(--ink);
 }
 .field input:focus, .field select:focus{ border-color:var(--violet-soft); background:var(--glass-fill-strong); }
+/* the native <option> popup ignores backdrop-filter/translucent fills and
+   falls back to the OS default (often white), which made text unreadable
+   in dark mode — force a solid, theme-matched background + text color */
+.field select option, #model-select option{
+  background-color:var(--panel); color:var(--ink);
+}
 .field-hint{ font-size:.7rem; color:var(--ink-faint); margin-top:6px; line-height:1.6; }
 
 /* -- api key / model validation status -- */
+.locked-field-row{ display:flex; align-items:center; gap:8px; }
+.locked-field-row input{ flex:1; }
+.locked-field-row input:disabled{ opacity:.55; cursor:not-allowed; }
+.lock-edit-btn{
+  width:38px; height:38px; border-radius:var(--radius-sm); flex-shrink:0; position:relative;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--glass-fill); transition:background .25s, transform .3s var(--ease-spring);
+}
+.lock-edit-btn:hover{ background:var(--glass-fill-strong); transform:scale(1.06); }
+.lock-edit-btn svg{ position:absolute; width:16px; height:16px; transition:opacity .3s var(--ease-spring), transform .3s var(--ease-spring); }
+.lock-edit-btn .icon-unlock{ opacity:0; transform:rotate(-15deg) scale(.6); color:var(--gold); }
+.lock-edit-btn .icon-lock{ opacity:1; transform:rotate(0) scale(1); color:var(--ink-faint); }
+.lock-edit-btn[data-locked="false"] .icon-lock{ opacity:0; transform:rotate(15deg) scale(.6); }
+.lock-edit-btn[data-locked="false"] .icon-unlock{ opacity:1; transform:rotate(0) scale(1); }
+
 .key-status-row{ display:flex; align-items:flex-start; gap:8px; margin-top:8px; min-height:18px; font-size:.72rem; line-height:1.6; }
 .key-status-row .dot{ margin-top:4px; }
 .key-status-row span.txt{ flex:1; word-break:break-word; }
@@ -707,6 +760,29 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .modal-btn.confirm{ background:linear-gradient(120deg, var(--violet), var(--magenta)); color:#fff; }
 
 .about-orb{ position:relative; width:70px; height:70px; margin:0 auto 16px; }
+
+/* -- rate-limit lockout: sleepy nose -- */
+.sleepy-orb{ width:100px; height:100px; }
+.sleepy-orb .orb{ animation:sleepyBreathe calc(4s / var(--anim-speed)) ease-in-out infinite; filter:saturate(.4) brightness(.85); }
+.sleepy-orb .nose-svg{ animation:sleepyBreathe calc(4s / var(--anim-speed)) ease-in-out infinite; filter:saturate(.35) brightness(.8) drop-shadow(0 6px 16px rgba(139,92,246,.35)); }
+@keyframes sleepyBreathe{ 0%,100%{ transform:scale(1) rotate(0deg); } 50%{ transform:scale(1.03) rotate(-2deg); } }
+.zzz{
+  position:absolute; top:-6px; left:60%; font-family:var(--font-display); font-weight:800; color:var(--violet-soft);
+  opacity:0; animation:zzzFloat calc(3s / var(--anim-speed)) ease-in infinite;
+}
+.zzz:nth-child(4){ font-size:14px; animation-delay:0s; }
+.zzz:nth-child(5){ font-size:18px; left:70%; animation-delay:.6s; }
+.zzz:nth-child(6){ font-size:22px; left:80%; animation-delay:1.2s; }
+@keyframes zzzFloat{
+  0%{ opacity:0; transform:translate(0,0) scale(.6); }
+  20%{ opacity:.9; }
+  100%{ opacity:0; transform:translate(20px,-42px) scale(1.2); }
+}
+.lockout-countdown{
+  font-family:var(--font-mono); font-size:1.6rem; font-weight:700; letter-spacing:2px;
+  background:linear-gradient(90deg, var(--violet-soft), var(--cyan));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
 .about-body{ font-size:.85rem; line-height:2; color:var(--ink-dim); text-align:center; }
 .about-body b{ color:var(--ink); }
 
@@ -723,10 +799,39 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 @keyframes rippleAnim{ to{ transform:scale(3); opacity:0; } }
 
 /* magnetic tilt helper class applied via JS inline transform */
-.tiltable{ transition:transform .15s ease-out; }
+.tiltable{ transition:transform .28s var(--ease-out); }
 
 /* ============================================================
-   8. RESPONSIVE
+   8. MOBILE PERFORMANCE — backdrop-filter blur and animated
+   conic-gradient borders are the two biggest GPU costs in this file;
+   both get stripped down hard on phones to stop stutter/crashes on
+   low/mid-range Android devices.
+   ============================================================ */
+@media (max-width:880px){
+  .glass, .glass-strong{
+    backdrop-filter:none; -webkit-backdrop-filter:none;
+    background:var(--void-2);
+  }
+  body.theme-light .glass, body.theme-light .glass-strong{ background:#ffffff; }
+
+  .animated-border::before, .assistant-glow::before, .error-card::before{
+    animation:none; display:none;
+  }
+  .animated-border, .assistant-glow, .error-card{ border:1px solid var(--glass-border); }
+
+  .blob{ filter:blur(36px); }
+  .blob-1, .blob-2, .blob-3{ animation-duration:calc(46s / var(--anim-speed)); }
+  .blob-4{ display:none; }
+  .bg-noise{ display:none; }
+  .bg-gradient{ animation-duration:calc(60s / var(--anim-speed)); }
+
+  .radar-ring{ display:none; }
+  .msg-bubble{ animation-duration:.35s; }
+}
+body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .particle{ animation-play-state:paused; }
+
+/* ============================================================
+   9. RESPONSIVE
    ============================================================ */
 @media (max-width:880px){
   #sidebar{ position:fixed; top:0; bottom:0; right:0; z-index:60; height:auto; margin:10px; box-shadow:-10px 0 40px rgba(0,0,0,.4); }
@@ -783,14 +888,20 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 
   .msg-bubble{ max-width:92%; font-size:.9rem; padding:13px 15px; }
   .msg-bubble pre{ max-width:100%; }
-  .dock-btn{ width:36px; height:36px; }
-  #send-btn{ width:38px; height:38px; }
+  #input-shell{ gap:2px; padding:8px 8px 8px 10px; }
+  .dock-btn{ width:34px; height:34px; }
+  .dock-btn svg{ width:15px; height:15px; }
+  #attach-hint{ display:none; }
+  #send-btn{ width:36px; height:36px; }
   .side-btn{ padding:12px 14px; font-size:.86rem; }
 }
 @media (max-width:360px){
   .confidence-badge{ display:none; }
   .feature-grid{ gap:8px; }
 }
+
+/* Twemoji: crisp SVG emoji instead of thin/inconsistent OS glyphs */
+img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .08em; display:inline-block; }
 </style>
 </head>
 <body>
@@ -934,12 +1045,22 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
         <button class="dock-btn tiltable" id="attach-hint" title="فقط متن پشتیبانی می‌شود">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3 3 0 014.24 4.24L9.41 17.41a1 1 0 01-1.41-1.41l8.49-8.49"/></svg>
         </button>
+        <button class="dock-btn tiltable" id="websearch-toggle" title="جستجوی وب">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.3 2.5 3.6 5.5 3.6 9s-1.3 6.5-3.6 9c-2.3-2.5-3.6-5.5-3.6-9s1.3-6.5 3.6-9z"/></svg>
+          <span class="ws-nose-badge"><svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg></span>
+        </button>
+        <button class="dock-btn tiltable" id="think-toggle" title="حالت فکر کردن (محدود)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a6 6 0 00-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0012 2z"/></svg>
+        </button>
         <textarea id="msg-input" rows="1" placeholder="از مغز ذکریان چیزی بپرس..."></textarea>
+        <button class="dock-btn tiltable" id="mic-btn" title="ورودی صوتی">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
+        </button>
         <button class="dock-btn tiltable" id="send-btn" title="ارسال">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
       </div>
-      <div class="hint-row">Enter برای ارسال · Shift+Enter برای خط جدید</div>
+      <div class="hint-row" id="input-hint">Enter برای ارسال · Shift+Enter برای خط جدید</div>
     </div>
   </main>
 </div>
@@ -956,19 +1077,30 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 
     <div class="field">
       <label>کلید API جمینای</label>
-      <input type="password" id="api-key-input" placeholder="AIza... کلید خودتو اینجا بچسبون">
+      <div class="locked-field-row">
+        <input type="password" id="api-key-input" placeholder="AIza... کلید خودتو اینجا بچسبون" disabled>
+        <button class="lock-edit-btn" id="api-key-lock-btn" data-locked="true" title="ویرایش">
+          <svg class="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          <svg class="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 017.8-1.3"/></svg>
+        </button>
+      </div>
       <div class="key-status-row" id="key-status-row"><span class="dot"></span><span class="txt" id="key-status-text">کلیدی وارد نشده</span></div>
-      <div class="field-hint">کلید فقط داخل مرورگر خودت (LocalStorage) ذخیره می‌شه و جایی ارسال نمی‌شه، مگر مستقیم به Google.</div>
+      <div class="field-hint">کلید فقط داخل مرورگر خودت (LocalStorage) ذخیره می‌شه و جایی ارسال نمی‌شه، مگر مستقیم به Google. برای ویرایش، قفلش رو باز کن.</div>
     </div>
 
     <div class="field">
       <label>آدرس پایه API (اختیاری / پروکسی)</label>
-      <input type="text" id="base-url-input" placeholder="https://generativelanguage.googleapis.com">
+      <div class="locked-field-row">
+        <input type="text" id="base-url-input" placeholder="https://generativelanguage.googleapis.com" disabled>
+        <button class="lock-edit-btn" id="base-url-lock-btn" data-locked="true" title="ویرایش">
+          <svg class="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+          <svg class="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 017.8-1.3"/></svg>
+        </button>
+      </div>
       <div class="field-hint">
         اگه درخواست‌ها اصلاً به گوگل نمی‌رسن (خطای «قطعی اینترنت/CORS» با کلید معتبر)، معمولاً یعنی API گوگل توی
-        کشورت یا از پشت VPN مسدوده — نه باگ توی این فایل. راه‌حل: یه پروکسی/رله‌ی سازگار با Gemini API
-        (مثلاً یه Worker یا سرور کوچیک خودت که درخواست رو به گوگل پاس می‌ده) بساز و آدرسش رو اینجا بذار،
-        دیگه تغییری توی بقیه‌ی کد لازم نیست.
+        کشورت یا از پشت VPN مسدوده — نه باگ توی این فایل. یه پروکسی/رله‌ی سازگار با Gemini API از قبل به‌عنوان
+        پیش‌فرض تنظیم شده؛ برای تغییرش قفلش رو باز کن.
       </div>
     </div>
 
@@ -996,8 +1128,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
     <div class="field">
       <label>حداکثر توکن پاسخ</label>
       <div class="range-row">
-        <input type="range" id="tokens-range" min="128" max="4096" step="128" value="1024">
-        <span class="range-val" id="tokens-val">1024</span>
+        <input type="range" id="tokens-range" min="128" max="4096" step="128" value="384">
+        <span class="range-val" id="tokens-val">384</span>
       </div>
     </div>
 
@@ -1056,7 +1188,45 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   </div>
 </div>
 
+<!-- ============================================================
+     RATE-LIMIT LOCKOUT — sleepy nose + countdown
+     ============================================================ -->
+<div class="modal-overlay" id="lockout-overlay">
+  <div class="modal-box glass-strong" style="text-align:center;">
+    <div class="orb-wrap sleepy-orb" style="margin:0 auto 18px;">
+      <div class="orb"></div>
+      <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
+      <span class="zzz">z</span><span class="zzz">z</span><span class="zzz">Z</span>
+    </div>
+    <h3 style="font-family:var(--font-display); margin-bottom:8px;">دماغ خوابش برد 😴</h3>
+    <p class="about-body" style="margin-bottom:18px;">
+      خیلی زیاد ازم سؤال پرسیدی، دماغ خسته شد و رفت چرت بزنه.<br>
+      وقتی بیدار شه دوباره می‌تونی باهاش حرف بزنی.
+    </p>
+    <div class="lockout-countdown" id="lockout-countdown">--:--:--</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     "ARE YOU A NOSE?" playful verification gate (shown occasionally)
+     ============================================================ -->
+<div class="modal-overlay" id="nose-gate-overlay">
+  <div class="modal-box glass-strong" style="text-align:center;">
+    <div style="font-size:44px; margin-bottom:10px;">🤔</div>
+    <h3 style="font-family:var(--font-display); margin-bottom:10px;">یه لحظه صبر کن...</h3>
+    <p class="about-body" style="margin-bottom:20px;">دماغ نیستی که؟ 👃</p>
+    <div class="modal-btn-row">
+      <button class="modal-btn ghost" id="nose-gate-yes">آره دماغم 👃</button>
+      <button class="modal-btn confirm" id="nose-gate-no">نه، آدمم 🙋</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="glass"></div>
+
+<!-- Twemoji: swaps native emoji glyphs (which look thin/inconsistent across OSes)
+     for crisp, consistent, colorful SVG emoji everywhere on the site -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
 /* ================================================================
@@ -1064,8 +1234,10 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
    ================================================================ */
 // NOTE: intentionally left blank as a safe default — paste your own
 // Gemini API key in Settings instead of hardcoding a real secret here.
-const API_KEY_DEFAULT = "";
-const DEFAULT_BASE_URL = "https://generativelanguage.googleapis.com";
+// defaults requested for this personal build — locked in the UI by default,
+// editable via the lock/edit toggle next to each field
+const API_KEY_DEFAULT = "AQ.Ab8RN6JiWxN30FyJNbcDqq1VxDgZzPojZM0ABva-o1zvaIeX8Q";
+const DEFAULT_BASE_URL = "https://gemini-proxy.iamamirrz.workers.dev/";
 let MODEL = ""; // no longer hardcoded — populated dynamically from the user's own account
 const getBaseUrl = () => (settings.baseUrl || DEFAULT_BASE_URL).replace(/\/+$/, '');
 const GEMINI_ENDPOINT = (model) =>
@@ -1089,7 +1261,12 @@ const PERSONA_PREFIX = "براساس مغز ذکریان جواب میدم:";
 const SYSTEM_INSTRUCTION =
   "تو «دماغ AI» هستی، یک دستیار هوش مصنوعی فارسی‌زبان با شخصیت بامزه، کمی خنگ و بیش از حد مطمئن به خودش. " +
   "همیشه لحنت سرگرم‌کننده و بامزه است ولی هرگز بی‌ادب نیستی. طوری رفتار کن انگار نابغه‌ای، حتی وقتی حرف‌های کمی مسخره می‌زنی. " +
-  `هر پاسخ تو باید دقیقاً با این عبارت شروع شود: "${PERSONA_PREFIX}" و بعد ادامه‌ی جواب.`;
+  `هر پاسخ تو باید دقیقاً با این عبارت شروع شود: "${PERSONA_PREFIX}" و بعد ادامه‌ی جواب. ` +
+  "پس‌زمینه‌ی شخصیتت (فقط وقتی مرتبطه یا ازت پرسیده شد بگو، توی هر پیام تکرارش نکن): ۲۲ سالته، سر جلسه‌ی کنکور خواب موندی، " +
+  "آرزوت این بود قبول دانشگاه بوعلی بشی ولی خب خرابش کردی و قبول نشدی، به شوخی می‌گی باید بری تو سطل آشغال، " +
+  "و با افتخار (و اغراق زیاد) داری از دانشگاه «جباریان» که خودت بهش می‌گی «آکسفورد سابق» فارغ‌التحصیل می‌شی. " +
+  "طول جواب‌هات رو متناسب با سؤال تنظیم کن: برای سؤال‌های ساده و گپ‌وگفت معمولی کوتاه و سرراست جواب بده، " +
+  "و فقط وقتی سؤال واقعاً نیاز به توضیح، لیست، یا مرحله‌به‌مرحله داره طولانی‌تر و کامل‌تر بنویس؛ هیچ‌وقت الکی پرحرفی نکن.";
 
 /* ================================================================
    SECTION B — STATE & STORAGE KEYS
@@ -1103,11 +1280,11 @@ const LS = {
 
 const defaultSettings = {
   apiKey: API_KEY_DEFAULT,
-  baseUrl: "",            // empty = use Google's default endpoint; set to a proxy URL if direct access is blocked
+  baseUrl: DEFAULT_BASE_URL,   // locked-by-default proxy; empty string would also fall back to DEFAULT_BASE_URL
   model: MODEL,          // currently selected model id (e.g. "gemini-2.5-pro")
   modelList: [],          // last successfully fetched model list (cache, optional)
   temperature: 1.0,
-  maxTokens: 1024,
+  maxTokens: 384,
   theme: "dark",
   glass: 22,
   animSpeed: 1.0,
@@ -1118,6 +1295,18 @@ let chats = loadJSON(LS.chats, {});          // { chatId: { id, title, messages:
 let activeChatId = localStorage.getItem(LS.activeChat) || null;
 let isStreaming = false;
 let streamAbort = false;
+let isPaused = false;
+let activeStreamStep = null;
+
+/* -------- new feature state -------- */
+let webSearchEnabled = false;
+let thinkModeEnabled = false;
+
+const THINK_DAILY_LIMIT = 5;
+const RATE_LIMIT_TOKENS = 20000;      // total tokens (in+out) allowed per window
+const RATE_LIMIT_WINDOW_MS = 5 * 60 * 60 * 1000; // 5 hours
+
+function todayKey(){ return new Date().toISOString().slice(0,10); }
 
 function loadJSON(key, fallback){
   try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : structuredClone(fallback); }
@@ -1130,6 +1319,7 @@ function saveSettings(){ localStorage.setItem(LS.settings, JSON.stringify(settin
    SECTION C — DOM REFS
    ================================================================ */
 const $ = (sel) => document.querySelector(sel);
+function parseEmoji(el){ if(window.twemoji && el) twemoji.parse(el, { folder: 'svg', ext: '.svg' }); }
 const welcomeEl = $('#welcome');
 const appEl = $('#app');
 const sidebarEl = $('#sidebar');
@@ -1146,7 +1336,7 @@ const toastEl = $('#toast');
    ================================================================ */
 (function spawnParticles(){
   const wrap = $('#particles');
-  const count = window.innerWidth < 600 ? 16 : 30;
+  const count = window.innerWidth < 480 ? 6 : (window.innerWidth < 880 ? 10 : 30);
   for(let i=0;i<count;i++){
     const p = document.createElement('div');
     p.className = 'particle';
@@ -1162,6 +1352,9 @@ const toastEl = $('#toast');
 
 /* subtle desktop-only parallax on the background blobs — skipped on touch
    devices to avoid wasted work / jank */
+document.addEventListener('visibilitychange', () => {
+  document.body.classList.toggle('tab-hidden', document.hidden);
+});
 if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
   const blobs = document.querySelectorAll('.blob');
   let px = 0, py = 0, rafId = null;
@@ -1184,11 +1377,15 @@ if(window.matchMedia('(hover:hover) and (pointer:fine)').matches){
 /* ================================================================
    SECTION E — WELCOME SCREEN LOGIC
    ================================================================ */
+function maybeShowNoseGate(){
+  if(Math.random() < 0.3) openModal('#nose-gate-overlay');
+}
 function initWelcome(){
   if(localStorage.getItem(LS.seenWelcome)){
     welcomeEl.classList.add('hide');
     welcomeEl.style.display = 'none';
     appEl.classList.add('show');
+    maybeShowNoseGate();
   } else {
     appEl.classList.add('show'); // pre-render behind welcome for smooth crossfade
   }
@@ -1197,6 +1394,15 @@ $('#start-btn').addEventListener('click', () => {
   localStorage.setItem(LS.seenWelcome, '1');
   welcomeEl.classList.add('hide');
   setTimeout(()=> welcomeEl.style.display='none', 950);
+  maybeShowNoseGate();
+});
+$('#nose-gate-yes').addEventListener('click', () => {
+  closeModal('#nose-gate-overlay');
+  showToast('😂 باشه بابا شوخی کردیم، خوش اومدی');
+});
+$('#nose-gate-no').addEventListener('click', () => {
+  closeModal('#nose-gate-overlay');
+  showToast('✅ آفرین، جواب درست بود');
 });
 
 /* ================================================================
@@ -1207,13 +1413,30 @@ function applySettingsToDOM(){
   document.documentElement.style.setProperty('--glass-blur', settings.glass + 'px');
   document.documentElement.style.setProperty('--anim-speed', settings.animSpeed);
   $('#api-key-input').value = settings.apiKey || '';
-  $('#base-url-input').value = settings.baseUrl || '';
+  $('#base-url-input').value = settings.baseUrl || DEFAULT_BASE_URL;
+  // default to locked every time the settings panel is (re)opened
+  lockField($('#api-key-input'), $('#api-key-lock-btn'), true);
+  lockField($('#base-url-input'), $('#base-url-lock-btn'), true);
   $('#temp-range').value = settings.temperature; $('#temp-val').textContent = settings.temperature.toFixed(1);
   $('#tokens-range').value = settings.maxTokens; $('#tokens-val').textContent = settings.maxTokens;
   $('#glass-range').value = settings.glass; $('#glass-val').textContent = settings.glass;
   $('#anim-range').value = settings.animSpeed; $('#anim-val').textContent = settings.animSpeed.toFixed(1)+'x';
   document.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
 }
+
+function lockField(inputEl, btnEl, locked){
+  inputEl.disabled = locked;
+  btnEl.dataset.locked = locked ? 'true' : 'false';
+  btnEl.title = locked ? 'ویرایش' : 'قفل کردن';
+}
+[$('#api-key-lock-btn'), $('#base-url-lock-btn')].forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = btn.previousElementSibling;
+    const nowLocked = btn.dataset.locked !== 'true'; // toggle
+    lockField(input, btn, nowLocked);
+    if(!nowLocked) input.focus();
+  });
+});
 
 /* ================================================================
    SECTION G — CHAT DATA HELPERS
@@ -1320,11 +1543,13 @@ function renderChat(){
       });
       el.addEventListener('mouseleave', () => { el.style.transform = ''; });
     });
+    parseEmoji(chatInner);
     return;
   }
   chatTitleEl.textContent = chats[activeChatId].title;
   chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false));
   scrollToBottom();
+  parseEmoji(chatInner);
 }
 
 function appendMessageDOM(role, text, idx, animate=true){
@@ -1337,7 +1562,7 @@ function appendMessageDOM(role, text, idx, animate=true){
   avatar.innerHTML = role === 'user' ? '🧑' : NOSE_MINI;
 
   const bubbleWrap = document.createElement('div');
-  bubbleWrap.style.display = 'flex'; bubbleWrap.style.flexDirection = 'column';
+  bubbleWrap.style.display = 'flex'; bubbleWrap.style.flexDirection = 'column'; bubbleWrap.style.minWidth = '0';
   bubbleWrap.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
 
   const bubble = document.createElement('div');
@@ -1449,6 +1674,14 @@ function filterChatModels(rawModels){
     }));
 }
 
+// preferred default model — used only when the user hasn't already picked one
+const PREFERRED_MODEL_HINT = /3[.\-_]?1.*flash.*lite|flash.*lite.*3[.\-_]?1/i;
+
+function pickDefaultModel(models){
+  const hinted = models.find(m => PREFERRED_MODEL_HINT.test(m.id) || PREFERRED_MODEL_HINT.test(m.label));
+  return hinted ? hinted.id : models[0].id;
+}
+
 function populateModelSelect(models, preferredId){
   modelSelectEl.innerHTML = '';
   if(models.length === 0){
@@ -1461,8 +1694,8 @@ function populateModelSelect(models, preferredId){
     opt.value = m.id; opt.textContent = m.label;
     modelSelectEl.appendChild(opt);
   });
-  // restore previous selection if it still exists, else auto-pick
-  let chosen = preferredId && models.some(m => m.id === preferredId) ? preferredId : models[0].id;
+  // restore previous selection if it still exists, else prefer Gemini 3.1 Flash Lite, else first
+  let chosen = preferredId && models.some(m => m.id === preferredId) ? preferredId : pickDefaultModel(models);
   modelSelectEl.value = chosen;
   modelSelectEl.disabled = false;
   modelSelectEl.classList.remove('pop-in');
@@ -1561,20 +1794,75 @@ function autoGrow(){
   msgInput.style.height = Math.min(msgInput.scrollHeight, 180) + 'px';
 }
 msgInput.addEventListener('input', autoGrow);
+const isTouchPrimary = window.matchMedia('(pointer:coarse)').matches;
+if(isTouchPrimary){ $('#input-hint').textContent = 'برای رفتن به خط بعد راحت بزن Enter · برای ارسال دکمه رو بزن'; }
 msgInput.addEventListener('keydown', (e) => {
+  if(isTouchPrimary) return; // let virtual keyboards insert newlines freely; tap send instead
   if(e.key === 'Enter' && !e.shiftKey){
     e.preventDefault();
     sendMessage();
   }
 });
 sendBtn.addEventListener('click', () => {
-  if(isStreaming){ streamAbort = true; return; }
+  if(isStreaming){
+    isPaused = !isPaused;
+    sendBtn.classList.toggle('paused', isPaused);
+    sendBtn.title = isPaused ? 'ادامه بده' : 'مکث کن';
+    if(!isPaused && activeStreamStep) activeStreamStep(); // resume the loop
+    return;
+  }
   sendMessage();
 });
+
+/* ================================================================
+   RATE LIMITING — sleepy-nose lockout after heavy usage
+   ================================================================ */
+const LS_RATE = 'namagh_rate_limit';
+function loadRateLimit(){ return loadJSON(LS_RATE, { tokensUsed:0, lockoutUntil:null }); }
+function saveRateLimit(){ localStorage.setItem(LS_RATE, JSON.stringify(rateLimitState)); }
+let rateLimitState = loadRateLimit();
+let lockoutIntervalId = null;
+
+function isLockedOut(){
+  if(rateLimitState.lockoutUntil && Date.now() < rateLimitState.lockoutUntil) return true;
+  if(rateLimitState.lockoutUntil && Date.now() >= rateLimitState.lockoutUntil){
+    rateLimitState = { tokensUsed:0, lockoutUntil:null };
+    saveRateLimit();
+  }
+  return false;
+}
+function updateLockoutCountdown(){
+  const remain = rateLimitState.lockoutUntil - Date.now();
+  if(remain <= 0){
+    clearInterval(lockoutIntervalId);
+    closeModal('#lockout-overlay');
+    rateLimitState = { tokensUsed:0, lockoutUntil:null };
+    saveRateLimit();
+    return;
+  }
+  const h = Math.floor(remain/3600000), m = Math.floor((remain%3600000)/60000), s = Math.floor((remain%60000)/1000);
+  $('#lockout-countdown').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function showLockout(){
+  openModal('#lockout-overlay');
+  updateLockoutCountdown();
+  clearInterval(lockoutIntervalId);
+  lockoutIntervalId = setInterval(updateLockoutCountdown, 1000);
+}
+function recordTokenUsage(n){
+  if(!n) return;
+  rateLimitState.tokensUsed += n;
+  if(rateLimitState.tokensUsed >= RATE_LIMIT_TOKENS && !rateLimitState.lockoutUntil){
+    rateLimitState.lockoutUntil = Date.now() + RATE_LIMIT_WINDOW_MS;
+    showLockout();
+  }
+  saveRateLimit();
+}
 
 async function sendMessage(){
   const text = msgInput.value.trim();
   if(!text || isStreaming) return;
+  if(isLockedOut()){ showLockout(); return; }
   if(!settings.apiKey){
     showToast('⚠️ اول یه کلید API معتبر توی تنظیمات وارد کن');
     openModal('#settings-overlay');
@@ -1593,6 +1881,7 @@ async function sendMessage(){
   chat.messages.push({ role:'user', text });
   saveChats(); renderHistory();
   appendMessageDOM('user', text, chat.messages.length - 1);
+  parseEmoji(chatInner);
   msgInput.value = ''; autoGrow();
   scrollToBottom();
   await requestAssistantReply();
@@ -1608,13 +1897,17 @@ function regenerateFrom(idx){
   requestAssistantReply();
 }
 
-function setTypingIndicator(show){
+function setTypingIndicator(show, thinking){
   let el = $('#typing-indicator');
   if(show){
     if(el) return;
     const row = document.createElement('div');
     row.className = 'typing-row'; row.id = 'typing-indicator';
-    row.innerHTML = `<div class="msg-avatar ai">${NOSE_MINI}</div><div class="typing-dots glass"><span></span><span></span><span></span></div>`;
+    row.innerHTML = `<div class="msg-avatar ai">${NOSE_MINI}</div>
+      <div class="typing-dots glass">
+        ${thinking ? '<span class="thinking-label">دارم بو می‌کشم و فکر می‌کنم</span>' : ''}
+        <span></span><span></span><span></span>
+      </div>`;
     chatInner.appendChild(row);
     scrollToBottom();
   } else if(el){ el.remove(); }
@@ -1635,7 +1928,25 @@ function showErrorCard(message, retryFn){
   if(retryFn){ row.querySelector('.error-retry').addEventListener('click', retryFn); }
   chatInner.appendChild(row);
   scrollToBottom();
+  parseEmoji(row);
 }
+
+const LS_THINK = 'namagh_think_usage';
+function loadThinkUsage(){
+  const raw = loadJSON(LS_THINK, { date: todayKey(), count: 0 });
+  return raw.date === todayKey() ? raw : { date: todayKey(), count: 0 };
+}
+function thinkUsesLeft(){ return Math.max(0, THINK_DAILY_LIMIT - loadThinkUsage().count); }
+function consumeThinkUse(){
+  const u = loadThinkUsage();
+  u.count += 1;
+  localStorage.setItem(LS_THINK, JSON.stringify(u));
+}
+
+const THINK_ADDON =
+  "برای همین پیام، حالت فکرکردن فعاله: قبل از جواب اصلی، افکارت رو بین [FEKR] و [/FEKR] بنویس " +
+  "(چند خط کوتاه و بامزه، انگار داری بو می‌کشی و با خودت فکر می‌کنی)، یه خط خالی بذار، " +
+  "و بعدش طبق قانون همیشگی ادامه بده (شروع با همون عبارت ثابت و بعد جواب نهایی).";
 
 async function requestAssistantReply(){
   const chat = chats[activeChatId];
@@ -1645,9 +1956,11 @@ async function requestAssistantReply(){
     return;
   }
 
-  isStreaming = true; streamAbort = false;
-  sendBtn.classList.add('stop');
-  setTypingIndicator(true);
+  const useThink = thinkModeEnabled && thinkUsesLeft() > 0;
+
+  isStreaming = true; streamAbort = false; isPaused = false;
+  sendBtn.classList.add('stop'); sendBtn.classList.remove('paused');
+  setTypingIndicator(true, useThink);
 
   try{
     const contents = chat.messages.map(m => ({
@@ -1657,12 +1970,13 @@ async function requestAssistantReply(){
 
     const body = {
       contents,
-      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + (useThink ? ' ' + THINK_ADDON : '') }] },
       generationConfig: {
         temperature: settings.temperature,
-        maxOutputTokens: settings.maxTokens
+        maxOutputTokens: useThink ? settings.maxTokens + 300 : settings.maxTokens
       }
     };
+    if(webSearchEnabled){ body.tools = [{ google_search: {} }]; }
 
     const modelToUse = settings.model;
     const res = await fetch(GEMINI_ENDPOINT(modelToUse), {
@@ -1677,14 +1991,26 @@ async function requestAssistantReply(){
     }
 
     const data = await res.json();
+    recordTokenUsage(data?.usageMetadata?.totalTokenCount);
+
     let reply = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
     if(!reply) throw new Error('پاسخ خالی از مدل دریافت شد.');
+
+    let thinking = '';
+    const thinkMatch = reply.match(/\[FEKR\]([\s\S]*?)\[\/FEKR\]/i);
+    if(thinkMatch){
+      thinking = thinkMatch[1].trim();
+      reply = reply.replace(thinkMatch[0], '').trim();
+      consumeThinkUse();
+      updateThinkToggleUI();
+    }
+
     if(!reply.trim().startsWith(PERSONA_PREFIX)){
       reply = PERSONA_PREFIX + ' ' + reply.trim();
     }
 
     setTypingIndicator(false);
-    await streamAssistantMessage(reply);
+    await streamAssistantMessage(reply, thinking);
 
     chat.messages.push({ role:'assistant', text: reply });
     saveChats(); renderHistory();
@@ -1698,12 +2024,20 @@ async function requestAssistantReply(){
   }
 }
 
-function streamAssistantMessage(fullText){
+function streamAssistantMessage(fullText, thinkingText){
   return new Promise((resolve) => {
     const row = document.createElement('div');
     row.className = 'msg-row ai';
     const avatar = document.createElement('div'); avatar.className = 'msg-avatar ai'; avatar.innerHTML = NOSE_MINI;
-    const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column';
+    const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.minWidth='0';
+
+    if(thinkingText){
+      const think = document.createElement('details');
+      think.className = 'think-block glass';
+      think.innerHTML = `<summary>👃 چه فکرایی کردم؟</summary><div class="think-body">${escapeHTML(thinkingText).replace(/\n/g,'<br>')}</div>`;
+      wrap.appendChild(think);
+    }
+
     const bubble = document.createElement('div'); bubble.className = 'msg-bubble glass assistant-glow';
     const cursor = document.createElement('span'); cursor.className = 'type-cursor';
     bubble.appendChild(cursor);
@@ -1715,24 +2049,27 @@ function streamAssistantMessage(fullText){
     const words = fullText.split(/(\s+)/);
     let i = 0;
     const speed = Math.max(6, 26 / settings.animSpeed);
+    function finish(){
+      bubble.innerHTML = renderMarkdown(fullText);
+      bindCodeCopyButtons(bubble);
+      const actions = document.createElement('div');
+      actions.className = 'msg-actions';
+      actions.innerHTML = `<button class="act-copy">📋 کپی</button><button class="act-regen">🔄 دوباره تولید کن</button>`;
+      actions.querySelector('.act-copy').addEventListener('click', () => copyText(fullText));
+      actions.querySelector('.act-regen').addEventListener('click', () => regenerateFrom(chats[activeChatId].messages.length));
+      wrap.appendChild(actions);
+      parseEmoji(wrap);
+      resolve();
+    }
     function step(){
-      if(streamAbort || i >= words.length){
-        bubble.innerHTML = renderMarkdown(fullText);
-        bindCodeCopyButtons(bubble);
-        const actions = document.createElement('div');
-        actions.className = 'msg-actions';
-        actions.innerHTML = `<button class="act-copy">📋 کپی</button><button class="act-regen">🔄 دوباره تولید کن</button>`;
-        actions.querySelector('.act-copy').addEventListener('click', () => copyText(fullText));
-        actions.querySelector('.act-regen').addEventListener('click', () => regenerateFrom(chats[activeChatId].messages.length));
-        wrap.appendChild(actions);
-        resolve();
-        return;
-      }
+      if(isPaused) return; // frozen — resumed externally via resumeStreaming()
+      if(streamAbort || i >= words.length){ finish(); return; }
       bubble.textContent += words[i]; bubble.appendChild(cursor);
       i++;
       scrollToBottom();
       setTimeout(step, speed);
     }
+    activeStreamStep = step; // exposed so the pause/resume button can restart the loop
     step();
   });
 }
@@ -1741,6 +2078,56 @@ function streamAssistantMessage(fullText){
    SECTION K — SIDEBAR / TOPBAR CONTROLS
    ================================================================ */
 $('#attach-hint').addEventListener('click', () => showToast('📎 فعلاً دماغ فقط متن بو می‌کشه، نه فایل!'));
+
+/* -------- web search toggle -------- */
+$('#websearch-toggle').addEventListener('click', () => {
+  webSearchEnabled = !webSearchEnabled;
+  $('#websearch-toggle').classList.toggle('active', webSearchEnabled);
+  showToast(webSearchEnabled ? '🌐 دماغ رفت تو اینترنت بو بکشه' : '🌐 جستجوی وب خاموش شد');
+});
+
+/* -------- think-mode toggle (limited daily uses) -------- */
+function updateThinkToggleUI(){
+  const left = thinkUsesLeft();
+  const btn = $('#think-toggle');
+  btn.disabled = left <= 0 && !thinkModeEnabled;
+  btn.title = left > 0 ? `حالت فکر کردن (${left} بار دیگه مونده امروز)` : 'امروز حالت فکر کردن تموم شده — فردا دوباره باز می‌شه';
+}
+$('#think-toggle').addEventListener('click', () => {
+  if(thinkUsesLeft() <= 0){ showToast('🧠 امروز دیگه دماغ خسته‌ست، فردا دوباره امتحان کن'); return; }
+  thinkModeEnabled = !thinkModeEnabled;
+  $('#think-toggle').classList.toggle('active', thinkModeEnabled);
+  showToast(thinkModeEnabled ? '🧠 حالت فکر کردن روشن شد' : '🧠 حالت فکر کردن خاموش شد');
+});
+updateThinkToggleUI();
+
+/* -------- voice input (on-device browser speech recognition) -------- */
+const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null, isRecording = false;
+if(SpeechRecognitionCtor){
+  recognizer = new SpeechRecognitionCtor();
+  recognizer.lang = 'fa-IR';
+  recognizer.interimResults = true;
+  recognizer.continuous = false;
+  recognizer.onresult = (e) => {
+    let text = '';
+    for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+    msgInput.value = text;
+    autoGrow();
+  };
+  recognizer.onend = () => { isRecording = false; $('#mic-btn').classList.remove('recording'); };
+  recognizer.onerror = () => { isRecording = false; $('#mic-btn').classList.remove('recording'); showToast('🎤 تشخیص صدا قطع شد'); };
+} else {
+  $('#mic-btn').style.display = 'none';
+}
+$('#mic-btn').addEventListener('click', () => {
+  if(!recognizer) return;
+  if(isRecording){ recognizer.stop(); return; }
+  isRecording = true;
+  $('#mic-btn').classList.add('recording');
+  showToast('🎤 دماغ داره گوش می‌ده... حرف بزن');
+  try{ recognizer.start(); } catch(e){ isRecording = false; $('#mic-btn').classList.remove('recording'); }
+});
 
 /* -------- sidebar open/close, mobile-aware -------- */
 const sidebarBackdrop = $('#sidebar-backdrop');
@@ -1894,6 +2281,7 @@ $('#wipe-btn').addEventListener('click', () => {
 let toastTimer;
 function showToast(msg){
   toastEl.textContent = msg;
+  parseEmoji(toastEl);
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2400);
@@ -1951,6 +2339,9 @@ function init(){
   ensureChat();
   renderHistory();
   renderChat();
+
+  if(isLockedOut()) showLockout();
+  parseEmoji(document.body);
 
   // restore API key + auto-fetch models (uses cached list instantly if present, then re-validates)
   if(settings.apiKey){
