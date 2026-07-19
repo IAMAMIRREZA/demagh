@@ -428,6 +428,31 @@ body.mood-sad{ --nose-c1:#93c5fd; --nose-c2:#60a5fa; --nose-c3:#3b5bab; }
 /* -------- main column -------- */
 #main{ flex:1; display:flex; flex-direction:column; min-width:0; height:100%; position:relative; }
 
+/* -------- canvas panel: a workspace that opens beside the chat -------- */
+#canvas-panel{
+  width:0; opacity:0; overflow:hidden; flex-shrink:0; height:100%;
+  display:flex; flex-direction:column; margin:14px 0 14px 14px; border-radius:var(--radius-lg);
+  transition:width .5s var(--ease-spring), opacity .3s, margin .5s var(--ease-spring);
+}
+#canvas-panel.open{ width:min(42%,560px); opacity:1; }
+.canvas-head{ display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
+.canvas-head-title{ display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:700; font-size:.95rem; }
+.canvas-head-title svg{ width:18px; height:18px; color:var(--violet-soft); }
+.canvas-head-actions{ display:flex; gap:4px; }
+#canvas-textarea{
+  flex:1; resize:none; background:transparent; padding:18px; font-family:var(--font-mono); font-size:.85rem;
+  line-height:1.8; color:var(--ink);
+}
+.canvas-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid var(--glass-border); flex-shrink:0; }
+.canvas-foot span{ font-size:.72rem; color:var(--ink-faint); font-family:var(--font-mono); }
+.canvas-foot .modal-btn{ flex:none; padding:9px 18px; font-size:.8rem; }
+
+@media (max-width:880px){
+  #canvas-panel{ position:fixed; inset:10px; z-index:70; margin:0; width:auto; height:auto; }
+  #canvas-panel:not(.open){ display:none; }
+  #canvas-panel.open{ width:auto; }
+}
+
 #topbar{
   display:flex; align-items:center; gap:14px; padding:16px 24px; margin:14px 14px 0;
   border-radius:var(--radius-md); flex-shrink:0;
@@ -558,6 +583,7 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 }
 
 .msg-bubble p{ margin:0 0 10px; }
+.msg-image{ max-width:100%; max-height:280px; border-radius:var(--radius-sm); display:block; margin-bottom:8px; object-fit:cover; }
 .msg-bubble p:last-child{ margin-bottom:0; }
 .msg-bubble code{ font-family:var(--font-mono); background:rgba(255,255,255,.12); padding:2px 6px; border-radius:6px; font-size:.85em; }
 .msg-bubble pre{
@@ -565,14 +591,12 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   padding:14px; overflow-x:auto; margin:10px 0; position:relative;
 }
 .msg-bubble pre code{ background:none; padding:0; font-size:.82rem; line-height:1.6; white-space:pre; }
-.code-copy{
-  position:absolute; top:8px; left:8px; font-size:.68rem; padding:5px 10px; border-radius:8px;
-  background:var(--glass-fill-strong); opacity:0; transition:opacity .2s, transform .2s;
-}
-.msg-bubble pre:hover .code-copy{ opacity:1; }
-.code-copy:hover{ transform:scale(1.06); }
+.code-actions{ position:absolute; top:8px; left:8px; display:flex; gap:6px; opacity:0; transition:opacity .2s; }
+.code-actions button{ font-size:.68rem; padding:5px 10px; border-radius:8px; background:var(--glass-fill-strong); transition:transform .2s; }
+.code-actions button:hover{ transform:scale(1.06); }
+.msg-bubble pre:hover .code-actions{ opacity:1; }
 @media (hover:none){
-  .code-copy{ opacity:.85; } /* touch devices can't hover — keep it visible */
+  .code-actions{ opacity:.85; } /* touch devices can't hover — keep it visible */
 }
 .tok-kw{ color:var(--magenta); } .tok-str{ color:var(--gold); } .tok-com{ color:var(--ink-faint); font-style:italic; } .tok-num{ color:var(--cyan); }
 
@@ -676,19 +700,44 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .dock-btn:hover{ background:var(--glass-fill); transform:scale(1.08); }
 .dock-btn svg{ width:17px; height:17px; }
 
-/* web-search toggle: globe icon + tiny nose badge = "دماغ اینترنت" */
-.ws-nose-badge{
-  position:absolute; bottom:0; left:0; width:14px; height:14px; border-radius:50%;
-  overflow:hidden; box-shadow:0 0 0 2px var(--void-2); opacity:.55; transition:opacity .25s, transform .25s var(--ease-spring);
+/* -- "+" tools menu: keeps the input row clean, tools tucked behind one button -- */
+.plus-menu-wrap{ position:relative; }
+#plus-btn{ transition:transform .35s var(--ease-spring), background .25s; }
+#plus-btn.open{ transform:rotate(45deg); background:var(--glass-fill-strong); }
+#plus-btn.has-active-tools::after{
+  content:''; position:absolute; top:6px; left:6px; width:8px; height:8px; border-radius:50%;
+  background:linear-gradient(135deg, var(--cyan), var(--magenta)); box-shadow:0 0 0 2px var(--void-2);
 }
-.ws-nose-badge .nose-svg{ position:static; width:100%; height:100%; filter:none; animation:none; }
-#websearch-toggle.active{ background:linear-gradient(135deg, rgba(34,211,238,.25), rgba(139,92,246,.25)); }
-#websearch-toggle.active .ws-nose-badge{ opacity:1; transform:scale(1.15); }
-#websearch-toggle.active svg{ color:var(--cyan); }
+.plus-menu{
+  position:absolute; bottom:calc(100% + 12px); right:0; min-width:230px; border-radius:var(--radius-md);
+  padding:8px; display:flex; flex-direction:column; gap:2px;
+  opacity:0; transform:translateY(10px) scale(.95); pointer-events:none;
+  transition:opacity .25s var(--ease-out), transform .3s var(--ease-spring);
+  z-index:20;
+}
+.plus-menu.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.plus-menu-item{
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:var(--radius-sm);
+  font-size:.85rem; text-align:right; width:100%; transition:background .2s;
+}
+.plus-menu-item:hover{ background:var(--glass-fill); }
+.plus-menu-item.active{ background:linear-gradient(135deg, rgba(34,211,238,.18), rgba(139,92,246,.18)); color:var(--ink); }
+.pmi-icon{ width:20px; height:20px; display:flex; align-items:center; justify-content:center; flex-shrink:0; opacity:.85; }
+.pmi-icon svg{ width:18px; height:18px; }
+.pmi-state{ margin-right:auto; font-size:.68rem; color:var(--ink-faint); }
+.plus-menu-item.active .pmi-state{ color:var(--cyan); }
 
-#think-toggle.active{ background:linear-gradient(135deg, rgba(251,191,36,.25), rgba(236,72,153,.2)); }
-#think-toggle.active svg{ color:var(--gold); }
-#think-toggle:disabled{ opacity:.35; cursor:not-allowed; }
+/* attached image preview chip above the input */
+#attach-preview-row{ display:flex; gap:8px; max-width:820px; margin:0 auto; padding:0 4px; }
+.attach-chip{
+  position:relative; width:56px; height:56px; border-radius:14px; overflow:hidden; flex-shrink:0;
+  animation:msgIn .3s var(--ease-spring) both;
+}
+.attach-chip img{ width:100%; height:100%; object-fit:cover; }
+.attach-chip .remove-chip{
+  position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;
+}
 
 #mic-btn.recording{ background:linear-gradient(135deg, var(--danger), var(--magenta)); color:#fff; animation:micPulse calc(1.2s / var(--anim-speed)) ease-in-out infinite; }
 @keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(251,113,133,.5);} 50%{ box-shadow:0 0 0 8px rgba(251,113,133,0);} }
@@ -857,6 +906,18 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 }
 #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+/* -- select text in any message to quote & ask about it -- */
+#ask-selection-btn{
+  position:fixed; z-index:250; display:none; align-items:center; gap:6px;
+  padding:9px 16px; border-radius:999px; font-size:.78rem; font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,.35); transform:translate(-50%,-8px) scale(.9);
+  opacity:0; transition:opacity .18s var(--ease-out), transform .18s var(--ease-spring);
+}
+#ask-selection-btn.show{ display:flex; opacity:1; transform:translate(-50%,-100%) scale(1); }
+#ask-selection-btn svg{ width:14px; height:14px; color:var(--cyan); }
+#ask-selection-btn:hover{ background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; }
+#ask-selection-btn:hover svg{ color:#fff; }
+
 /* ripple */
 .ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.4); transform:scale(0); animation:rippleAnim .6s ease-out; pointer-events:none; }
 @keyframes rippleAnim{ to{ transform:scale(3); opacity:0; } }
@@ -890,9 +951,19 @@ body.perf-lite .bg-noise{ display:none; }
 body.perf-lite .bg-gradient{ animation-duration:calc(60s / var(--anim-speed)); }
 
 body.perf-lite .radar-ring{ display:none; }
-body.perf-lite .msg-bubble{ animation-duration:.35s; }
+body.perf-lite .msg-bubble{ animation-duration:.2s; }
+body.perf-lite .msg-row{ animation-duration:.2s; }
 body.perf-lite .feature-card{ animation-name:titleIn; } /* drop the idle cardBob loop */
 body.perf-lite .entry-flash, body.perf-lite .burst-particle{ display:none; }
+body.perf-lite .particle, body.perf-lite .sparkle, body.perf-lite .ripple{ display:none; }
+body.perf-lite .orb, body.perf-lite .nose-svg, body.perf-lite .brand-orb,
+body.perf-lite .msg-avatar, body.perf-lite .msg-avatar.ai .nose-svg{ animation:none !important; }
+body.perf-lite .msg-avatar{ animation:none !important; }
+body.perf-lite .confidence-fill{ transition:none; }
+body.perf-lite .lockout-nose-mini .nose-svg{ animation:none !important; }
+body.perf-lite .code-actions, body.perf-lite .msg-actions{ transition:none; }
+body.perf-lite *{ scroll-behavior:auto !important; }
+body.perf-lite .bg-particles{ display:none; }
 
 body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .particle{ animation-play-state:paused; }
 
@@ -957,7 +1028,7 @@ body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .particle{ 
   #input-shell{ gap:2px; padding:8px 8px 8px 10px; }
   .dock-btn{ width:34px; height:34px; }
   .dock-btn svg{ width:15px; height:15px; }
-  #attach-hint{ display:none; }
+  #plus-menu{ min-width:200px; }
   #send-btn{ width:36px; height:36px; }
   .side-btn{ padding:12px 14px; font-size:.86rem; }
 }
@@ -1117,17 +1188,34 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     </div>
 
     <div id="input-dock">
+      <div id="attach-preview-row"></div>
+
       <div id="input-shell" class="glass animated-border">
-        <button class="dock-btn tiltable" id="attach-hint" title="فقط متن پشتیبانی می‌شود">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a5 5 0 01-7.07-7.07l9.19-9.19a3 3 0 014.24 4.24L9.41 17.41a1 1 0 01-1.41-1.41l8.49-8.49"/></svg>
-        </button>
-        <button class="dock-btn tiltable" id="websearch-toggle" title="جستجوی وب">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.3 2.5 3.6 5.5 3.6 9s-1.3 6.5-3.6 9c-2.3-2.5-3.6-5.5-3.6-9s1.3-6.5 3.6-9z"/></svg>
-          <span class="ws-nose-badge"><svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg></span>
-        </button>
-        <button class="dock-btn tiltable" id="think-toggle" title="حالت فکر کردن (محدود)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a6 6 0 00-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0012 2z"/></svg>
-        </button>
+        <div class="plus-menu-wrap">
+          <button class="dock-btn tiltable" id="plus-btn" title="ابزارها">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <div class="plus-menu glass-strong" id="plus-menu">
+            <button class="plus-menu-item" id="menu-image-btn">
+              <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></span>
+              آپلود عکس برای تحلیل
+            </button>
+            <button class="plus-menu-item" id="menu-canvas-btn">
+              <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg></span>
+              باز کردن بوم دماغ
+            </button>
+            <button class="plus-menu-item" id="menu-websearch-btn">
+              <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.3 2.5 3.6 5.5 3.6 9s-1.3 6.5-3.6 9c-2.3-2.5-3.6-5.5-3.6-9s1.3-6.5 3.6-9z"/></svg></span>
+              جستجوی وب <span class="pmi-state" id="pmi-ws-state"></span>
+            </button>
+            <button class="plus-menu-item" id="menu-think-btn">
+              <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a6 6 0 00-4 10.5c.6.5 1 1.3 1 2.1V16h6v-1.4c0-.8.4-1.6 1-2.1A6 6 0 0012 2z"/></svg></span>
+              حالت فکر کردن <span class="pmi-state" id="pmi-think-state"></span>
+            </button>
+          </div>
+        </div>
+        <input type="file" id="image-file-input" accept="image/*" hidden>
+
         <textarea id="msg-input" rows="1" placeholder="از مغز ذکریان چیزی بپرس..."></textarea>
         <button class="dock-btn tiltable" id="mic-btn" title="ورودی صوتی">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
@@ -1151,6 +1239,28 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       <div class="hint-row" id="input-hint">Enter برای ارسال · Shift+Enter برای خط جدید</div>
     </div>
   </main>
+
+  <!-- ============================================================
+       CANVAS — a dedicated workspace outside the narrow chat bubble
+       ============================================================ -->
+  <aside id="canvas-panel" class="glass">
+    <div class="canvas-head">
+      <div class="canvas-head-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+        بوم دماغ
+      </div>
+      <div class="canvas-head-actions">
+        <button class="icon-btn tiltable" id="canvas-copy-btn" title="کپی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></button>
+        <button class="icon-btn tiltable" id="canvas-download-btn" title="دانلود"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg></button>
+        <button class="icon-btn tiltable" id="canvas-close-btn" title="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+      </div>
+    </div>
+    <textarea id="canvas-textarea" placeholder="اینجا بنویس، بچسبون، یا کد رو باز کن... بعد بفرستش به دماغ تا روش نظر بده"></textarea>
+    <div class="canvas-foot">
+      <span id="canvas-char-count">۰ کاراکتر</span>
+      <button class="modal-btn confirm" id="canvas-send-btn">🚀 بفرست به دماغ</button>
+    </div>
+  </aside>
 </div>
 
 <!-- ============================================================
@@ -1308,6 +1418,10 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
 </div>
 
 <div id="toast" class="glass"></div>
+<button id="ask-selection-btn" class="glass-strong">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 17h.01"/></svg>
+  بپرس درباره‌ی این
+</button>
 
 <!-- Twemoji: swaps native emoji glyphs (which look thin/inconsistent across OSes)
      for crisp, consistent, colorful SVG emoji everywhere on the site -->
@@ -1431,6 +1545,7 @@ let activeStreamStep = null;
 /* -------- new feature state -------- */
 let webSearchEnabled = false;
 let thinkModeEnabled = false;
+let pendingImage = null; // { mimeType, data (base64, no prefix), previewUrl }
 
 const THINK_DAILY_LIMIT = 5;
 const RATE_LIMIT_TOKENS = 60000;      // total tokens (in+out) allowed per window
@@ -1491,6 +1606,7 @@ applyPerfMode();
    SECTION D — BACKGROUND PARTICLES
    ================================================================ */
 (function spawnParticles(){
+  if(document.body.classList.contains('perf-lite')) return; // skip entirely on weak Android
   const wrap = $('#particles');
   const count = window.innerWidth < 480 ? 6 : (window.innerWidth < 880 ? 10 : 30);
   for(let i=0;i<count;i++){
@@ -1737,12 +1853,12 @@ function renderChat(){
     return;
   }
   chatTitleEl.textContent = chats[activeChatId].title;
-  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false));
+  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false, m.image));
   scrollToBottom();
   parseEmoji(chatInner);
 }
 
-function appendMessageDOM(role, text, idx, animate=true){
+function appendMessageDOM(role, text, idx, animate=true, image){
   const row = document.createElement('div');
   row.className = 'msg-row ' + (role === 'user' ? 'user' : 'ai');
   if(!animate) row.style.animation = 'none';
@@ -1757,7 +1873,16 @@ function appendMessageDOM(role, text, idx, animate=true){
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble glass' + (role === 'ai' ? ' assistant-glow' : '');
-  bubble.innerHTML = renderMarkdown(text);
+  if(image){
+    const img = document.createElement('img');
+    img.src = `data:${image.mimeType};base64,${image.data}`;
+    img.className = 'msg-image';
+    img.alt = 'عکس ارسالی';
+    bubble.appendChild(img);
+  }
+  const textPart = document.createElement('div');
+  textPart.innerHTML = renderMarkdown(text || '');
+  bubble.appendChild(textPart);
 
   const actions = document.createElement('div');
   actions.className = 'msg-actions';
@@ -1804,7 +1929,7 @@ function renderMarkdown(text){
   const codeBlocks = [];
   src = src.replace(/```(\w*)\n?([\s\S]*?)```/g, (m, lang, code) => {
     const i = codeBlocks.length;
-    codeBlocks.push(`<pre><button class="code-copy">کپی</button><code>${highlightCode(code.trim())}</code></pre>`);
+    codeBlocks.push(`<pre><div class="code-actions"><button class="code-copy">کپی</button><button class="code-canvas-open">بوم</button></div><code>${highlightCode(code.trim())}</code></pre>`);
     return `__CODEBLOCK_${i}__`;
   });
   let html = escapeHTML(src);
@@ -1819,10 +1944,17 @@ function renderMarkdown(text){
 function bindCodeCopyButtons(scope){
   scope.querySelectorAll('.code-copy').forEach(btn => {
     btn.addEventListener('click', () => {
-      const code = btn.nextElementSibling.textContent;
+      const code = btn.closest('pre').querySelector('code').textContent;
       copyText(code);
       btn.textContent = 'کپی شد!';
       setTimeout(()=> btn.textContent = 'کپی', 1400);
+    });
+  });
+  scope.querySelectorAll('.code-canvas-open').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.closest('pre').querySelector('code').textContent;
+      openCanvas(code);
+      showToast('📋 کد رفت توی بوم');
     });
   });
 }
@@ -2072,7 +2204,7 @@ function recordTokenUsage(n){
 
 async function sendMessage(){
   const text = msgInput.value.trim();
-  if(!text || isStreaming) return;
+  if((!text && !pendingImage) || isStreaming) return;
   if(isLockedOut()){ showLockout(); return; }
   if(!settings.apiKey){
     showToast('⚠️ اول یه کلید API معتبر توی تنظیمات وارد کن');
@@ -2087,13 +2219,16 @@ async function sendMessage(){
   ensureChat();
   const chat = chats[activeChatId];
   if(chat.messages.length === 0){
-    chat.title = text.slice(0, 32) + (text.length > 32 ? '…' : '');
+    chat.title = (text || '🖼️ عکس').slice(0, 32) + (text.length > 32 ? '…' : '');
   }
-  chat.messages.push({ role:'user', text });
+  const msgObj = { role:'user', text };
+  if(pendingImage) msgObj.image = { mimeType: pendingImage.mimeType, data: pendingImage.data };
+  chat.messages.push(msgObj);
   saveChats(); renderHistory();
-  appendMessageDOM('user', text, chat.messages.length - 1);
+  appendMessageDOM('user', text, chat.messages.length - 1, true, msgObj.image);
   parseEmoji(chatInner);
   msgInput.value = ''; autoGrow();
+  pendingImage = null; renderAttachPreview(); updatePlusMenuUI();
   scrollToBottom();
   await requestAssistantReply();
 }
@@ -2179,10 +2314,13 @@ async function requestAssistantReply(skipExtras){
   setTypingIndicator(true, useThink);
 
   try{
-    const contents = chat.messages.map(m => ({
-      role: m.role === 'user' ? 'user' : 'model',
-      parts: [{ text: m.text }]
-    }));
+    const contents = chat.messages.map(m => {
+      const parts = [];
+      if(m.text) parts.push({ text: m.text });
+      if(m.image) parts.push({ inline_data: { mime_type: m.image.mimeType, data: m.image.data } });
+      if(parts.length === 0) parts.push({ text: '' });
+      return { role: m.role === 'user' ? 'user' : 'model', parts };
+    });
 
     const body = {
       contents,
@@ -2303,29 +2441,94 @@ function streamAssistantMessage(fullText, thinkingText){
 /* ================================================================
    SECTION K — SIDEBAR / TOPBAR CONTROLS
    ================================================================ */
-$('#attach-hint').addEventListener('click', () => showToast('📎 فعلاً دماغ فقط متن بو می‌کشه، نه فایل!'));
+
+/* -------- "+" tools menu -------- */
+const plusBtn = $('#plus-btn'), plusMenu = $('#plus-menu');
+function togglePlusMenu(show){
+  const open = show !== undefined ? show : !plusMenu.classList.contains('open');
+  plusMenu.classList.toggle('open', open);
+  plusBtn.classList.toggle('open', open);
+}
+plusBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlusMenu(); });
+document.addEventListener('click', (e) => {
+  if(plusMenu.classList.contains('open') && !plusMenu.contains(e.target) && e.target !== plusBtn) togglePlusMenu(false);
+});
+function updatePlusMenuUI(){
+  $('#menu-websearch-btn').classList.toggle('active', webSearchEnabled);
+  $('#pmi-ws-state').textContent = webSearchEnabled ? 'روشن' : '';
+  $('#menu-think-btn').classList.toggle('active', thinkModeEnabled);
+  const left = thinkUsesLeft();
+  $('#pmi-think-state').textContent = thinkModeEnabled ? 'روشن' : (left > 0 ? `${left} مونده` : 'تموم شده');
+  $('#menu-think-btn').disabled = left <= 0 && !thinkModeEnabled;
+  plusBtn.classList.toggle('has-active-tools', webSearchEnabled || thinkModeEnabled || !!pendingImage);
+}
 
 /* -------- web search toggle -------- */
-$('#websearch-toggle').addEventListener('click', () => {
+$('#menu-websearch-btn').addEventListener('click', () => {
   webSearchEnabled = !webSearchEnabled;
-  $('#websearch-toggle').classList.toggle('active', webSearchEnabled);
+  updatePlusMenuUI();
   showToast(webSearchEnabled ? '🌐 دماغ رفت تو اینترنت بو بکشه' : '🌐 جستجوی وب خاموش شد');
 });
 
 /* -------- think-mode toggle (limited daily uses) -------- */
-function updateThinkToggleUI(){
-  const left = thinkUsesLeft();
-  const btn = $('#think-toggle');
-  btn.disabled = left <= 0 && !thinkModeEnabled;
-  btn.title = left > 0 ? `حالت فکر کردن (${left} بار دیگه مونده امروز)` : 'امروز حالت فکر کردن تموم شده — فردا دوباره باز می‌شه';
-}
-$('#think-toggle').addEventListener('click', () => {
+function updateThinkToggleUI(){ updatePlusMenuUI(); }
+$('#menu-think-btn').addEventListener('click', () => {
   if(thinkUsesLeft() <= 0){ showToast('🧠 امروز دیگه دماغ خسته‌ست، فردا دوباره امتحان کن'); return; }
   thinkModeEnabled = !thinkModeEnabled;
-  $('#think-toggle').classList.toggle('active', thinkModeEnabled);
+  updatePlusMenuUI();
   showToast(thinkModeEnabled ? '🧠 حالت فکر کردن روشن شد' : '🧠 حالت فکر کردن خاموش شد');
 });
-updateThinkToggleUI();
+updatePlusMenuUI();
+
+/* -------- image upload for vision analysis -------- */
+$('#menu-image-btn').addEventListener('click', () => { togglePlusMenu(false); $('#image-file-input').click(); });
+$('#image-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ showToast('⚠️ فقط عکس قابل قبوله'); return; }
+  compressImage(file, 1024, 0.8).then(({ mimeType, data, previewUrl }) => {
+    pendingImage = { mimeType, data, previewUrl };
+    renderAttachPreview();
+    updatePlusMenuUI();
+  }).catch(() => showToast('⚠️ خوندن عکس ناموفق بود'));
+  e.target.value = '';
+});
+function compressImage(file, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if(width > maxDim || height > maxDim){
+          const scale = maxDim / Math.max(width, height);
+          width = Math.round(width * scale); height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve({ mimeType: 'image/jpeg', data: dataUrl.split(',')[1], previewUrl: dataUrl });
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function renderAttachPreview(){
+  const row = $('#attach-preview-row');
+  row.innerHTML = '';
+  if(!pendingImage) return;
+  const chip = document.createElement('div');
+  chip.className = 'attach-chip glass';
+  chip.innerHTML = `<img src="${pendingImage.previewUrl}" alt="عکس ضمیمه"><button class="remove-chip">✕</button>`;
+  chip.querySelector('.remove-chip').addEventListener('click', () => {
+    pendingImage = null; renderAttachPreview(); updatePlusMenuUI();
+  });
+  row.appendChild(chip);
+}
 
 /* -------- voice input (on-device browser speech recognition) -------- */
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -2523,9 +2726,80 @@ function showToast(msg){
 }
 
 /* ================================================================
+   SECTION M2 — SELECT TEXT IN A MESSAGE → ASK ABOUT IT
+   ================================================================ */
+const askSelBtn = $('#ask-selection-btn');
+let lastSelectedText = '';
+document.addEventListener('mouseup', (e) => {
+  if(askSelBtn.contains(e.target)) return; // don't hide right as we click it
+  setTimeout(() => {
+    const sel = window.getSelection();
+    const text = sel ? sel.toString().trim() : '';
+    if(!text || text.length < 2){ askSelBtn.classList.remove('show'); return; }
+    const anchor = sel.anchorNode;
+    const withinMessage = anchor && chatInner.contains(anchor.nodeType === 1 ? anchor : anchor.parentElement);
+    if(!withinMessage){ askSelBtn.classList.remove('show'); return; }
+    lastSelectedText = text;
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    askSelBtn.style.left = (rect.left + rect.width / 2) + 'px';
+    askSelBtn.style.top = Math.max(50, rect.top) + 'px';
+    askSelBtn.classList.add('show');
+  }, 0);
+});
+document.addEventListener('mousedown', (e) => {
+  if(!askSelBtn.contains(e.target)) askSelBtn.classList.remove('show');
+});
+askSelBtn.addEventListener('click', () => {
+  const quoted = lastSelectedText.length > 240 ? lastSelectedText.slice(0, 240) + '…' : lastSelectedText;
+  const prefix = msgInput.value.trim() ? msgInput.value.trim() + '\n\n' : '';
+  msgInput.value = `${prefix}> ${quoted}\n\n`;
+  autoGrow();
+  msgInput.focus();
+  msgInput.setSelectionRange(msgInput.value.length, msgInput.value.length);
+  askSelBtn.classList.remove('show');
+  window.getSelection()?.removeAllRanges();
+});
+
+/* ================================================================
+   SECTION M3 — CANVAS PANEL
+   ================================================================ */
+const canvasPanel = $('#canvas-panel');
+const canvasTextarea = $('#canvas-textarea');
+function openCanvas(prefillText){
+  if(typeof prefillText === 'string') canvasTextarea.value = prefillText;
+  canvasPanel.classList.add('open');
+  updateCanvasCharCount();
+  setTimeout(() => canvasTextarea.focus(), 300);
+}
+function closeCanvas(){ canvasPanel.classList.remove('open'); }
+function updateCanvasCharCount(){
+  $('#canvas-char-count').textContent = canvasTextarea.value.length.toLocaleString('fa-IR') + ' کاراکتر';
+}
+canvasTextarea.addEventListener('input', updateCanvasCharCount);
+$('#canvas-close-btn').addEventListener('click', closeCanvas);
+$('#menu-canvas-btn').addEventListener('click', () => { togglePlusMenu(false); openCanvas(canvasTextarea.value || ''); });
+$('#canvas-copy-btn').addEventListener('click', () => copyText(canvasTextarea.value));
+$('#canvas-download-btn').addEventListener('click', () => {
+  const blob = new Blob([canvasTextarea.value], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'namagh-canvas.txt';
+  a.click();
+});
+$('#canvas-send-btn').addEventListener('click', () => {
+  const content = canvasTextarea.value.trim();
+  if(!content){ showToast('بوم خالیه که'); return; }
+  msgInput.value = (msgInput.value.trim() ? msgInput.value.trim() + '\n\n' : '') + 'محتوای بوم رو بررسی کن:\n```\n' + content + '\n```';
+  autoGrow();
+  sendMessage();
+  if(window.matchMedia('(max-width:880px)').matches) closeCanvas();
+});
+
+/* ================================================================
    SECTION N — MICRO INTERACTIONS: magnetic hover + ripple
    ================================================================ */
 document.querySelectorAll('.tiltable').forEach(el => {
+  if(document.body.classList.contains('perf-lite')) return; // skip on weak Android — mousemove listeners add up
   el.addEventListener('mousemove', (e) => {
     const r = el.getBoundingClientRect();
     const x = (e.clientX - r.left - r.width/2) / 4;
@@ -2536,6 +2810,7 @@ document.querySelectorAll('.tiltable').forEach(el => {
 });
 
 document.addEventListener('click', (e) => {
+  if(document.body.classList.contains('perf-lite')) return; // skip ripple DOM churn on weak Android
   const target = e.target.closest('.side-btn, .btn-start, .suggestion-chip, .modal-btn, .icon-btn, .dock-btn');
   if(!target) return;
   const r = target.getBoundingClientRect();
