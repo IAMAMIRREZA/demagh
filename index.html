@@ -936,44 +936,49 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .tiltable{ transition:transform .28s var(--ease-out); }
 
 /* ============================================================
-   8. PERFORMANCE-LITE MODE — backdrop-filter blur and animated
-   conic-gradient borders are the two biggest GPU costs in this file.
-   Applied only via the JS-detected/user-chosen `.perf-lite` class on
-   <body> — NOT a blanket viewport-width query — so iPhones, strong
-   Android phones, and desktop keep full effects; only genuinely
-   weak Android devices get the stripped-down version.
+   8. PERFORMANCE-LITE MODE — for genuinely weak Android only.
+   Philosophy: don't just shrink these effects, remove them. A live
+   blurred background + streaming text reflow + layered glows is the
+   single biggest source of jank on weak GPUs, so perf-lite drops the
+   "premium" visual layer entirely in favor of a flat, static, cheap
+   UI. iPhones, strong Android, and desktop are untouched.
    ============================================================ */
 body.perf-lite .glass, body.perf-lite .glass-strong{
   backdrop-filter:none; -webkit-backdrop-filter:none;
-  background:var(--void-2);
+  background:var(--void-2); box-shadow:none;
 }
 body.perf-lite.theme-light .glass, body.perf-lite.theme-light .glass-strong{ background:#ffffff; }
 
+/* kill the entire live background — one flat static color, no blur, no compositing */
+body.perf-lite .blob, body.perf-lite .bg-noise, body.perf-lite .bg-particles,
+body.perf-lite .radar-ring, body.perf-lite .entry-flash, body.perf-lite .burst-particle,
+body.perf-lite .particle, body.perf-lite .sparkle, body.perf-lite .ripple{ display:none !important; }
+body.perf-lite .bg-gradient{ animation:none !important; background-position:0% 50% !important; }
+
+/* kill every glow/conic-gradient border and drop-shadow filter */
 body.perf-lite .animated-border::before, body.perf-lite .assistant-glow::before, body.perf-lite .error-card::before{
   animation:none; display:none;
 }
-body.perf-lite .animated-border, body.perf-lite .assistant-glow, body.perf-lite .error-card{ border:1px solid var(--glass-border); }
+body.perf-lite .animated-border, body.perf-lite .assistant-glow, body.perf-lite .error-card{ border:1px solid var(--glass-border); box-shadow:none; }
+body.perf-lite .orb{ display:none; }
+body.perf-lite .nose-svg{ filter:none !important; animation:none !important; }
+body.perf-lite *{ box-shadow:none !important; text-shadow:none !important; }
 
-body.perf-lite .blob{ filter:blur(36px); }
-body.perf-lite .blob-1, body.perf-lite .blob-2, body.perf-lite .blob-3{ animation-duration:calc(46s / var(--anim-speed)); }
-body.perf-lite .blob-4{ display:none; }
-body.perf-lite .bg-noise{ display:none; }
-body.perf-lite .bg-gradient{ animation-duration:calc(60s / var(--anim-speed)); }
-
-body.perf-lite .radar-ring{ display:none; }
-body.perf-lite .msg-bubble{ animation-duration:.2s; }
-body.perf-lite .msg-row{ animation-duration:.2s; }
-body.perf-lite .feature-card{ animation-name:titleIn; } /* drop the idle cardBob loop */
-body.perf-lite .entry-flash, body.perf-lite .burst-particle{ display:none; }
-body.perf-lite .particle, body.perf-lite .sparkle, body.perf-lite .ripple{ display:none; }
-body.perf-lite .orb, body.perf-lite .nose-svg, body.perf-lite .brand-orb,
-body.perf-lite .msg-avatar, body.perf-lite .msg-avatar.ai .nose-svg{ animation:none !important; }
-body.perf-lite .msg-avatar{ animation:none !important; }
+/* no entrance/idle animation loops at all — instant appearance instead */
+body.perf-lite .msg-row, body.perf-lite .msg-bubble, body.perf-lite .msg-avatar,
+body.perf-lite .feature-card, body.perf-lite .history-item, body.perf-lite .typing-row,
+body.perf-lite .brand-orb, body.perf-lite .error-card, body.perf-lite .think-block,
+body.perf-lite #chat-inner.chat-switch-in{ animation:none !important; }
 body.perf-lite .confidence-fill{ transition:none; }
-body.perf-lite .lockout-nose-mini .nose-svg{ animation:none !important; }
 body.perf-lite .code-actions, body.perf-lite .msg-actions{ transition:none; }
 body.perf-lite *{ scroll-behavior:auto !important; }
-body.perf-lite .bg-particles{ display:none; }
+
+/* buttons/hovers: instant state change, no springy transform transitions */
+body.perf-lite .tiltable, body.perf-lite .side-btn, body.perf-lite .dock-btn,
+body.perf-lite .icon-btn, body.perf-lite .modal-btn, body.perf-lite .feature-card{
+  transition:background .1s linear !important;
+}
+body.perf-lite .lockout-nose-mini .nose-svg{ animation:none !important; }
 
 body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .particle{ animation-play-state:paused; }
 
@@ -1588,7 +1593,11 @@ function saveSettings(){ localStorage.setItem(LS.settings, JSON.stringify(settin
    SECTION C — DOM REFS
    ================================================================ */
 const $ = (sel) => document.querySelector(sel);
-function parseEmoji(el){ if(window.twemoji && el) twemoji.parse(el, { folder: 'svg', ext: '.svg' }); }
+function parseEmoji(el){
+  if(!el || !window.twemoji) return;
+  if(document.body.classList.contains('perf-lite')) return; // native emoji glyphs are cheaper
+  twemoji.parse(el, { folder: 'svg', ext: '.svg' });
+}
 const welcomeEl = $('#welcome');
 const appEl = $('#app');
 const sidebarEl = $('#sidebar');
@@ -2450,6 +2459,7 @@ function streamAssistantMessage(fullText, thinkingText){
     const words = fullText.split(/(\s+)/);
     let i = 0;
     const speed = Math.max(6, 26 / settings.animSpeed);
+    const isLite = document.body.classList.contains('perf-lite');
     function finish(){
       bubble.innerHTML = renderMarkdown(fullText);
       bindCodeCopyButtons(bubble);
@@ -2462,6 +2472,7 @@ function streamAssistantMessage(fullText, thinkingText){
       parseEmoji(wrap);
       resolve();
     }
+    if(isLite){ finish(); return; } // weak Android: skip the per-word reflow loop, render instantly
     function step(){
       if(isPaused) return; // frozen — resumed externally via resumeStreaming()
       if(streamAbort || i >= words.length){ finish(); return; }
@@ -2681,7 +2692,7 @@ $('#confidence-badge').addEventListener('click', () => {
   showToast(confidenceQuips[Math.floor(Math.random()*confidenceQuips.length)]);
 });
 rollConfidence();
-setInterval(rollConfidence, 26000);
+if(!document.body.classList.contains('perf-lite')) setInterval(rollConfidence, 26000);
 
 /* ================================================================
    SECTION L — SETTINGS MODAL LOGIC
@@ -2871,11 +2882,13 @@ const placeholders = [
   'باهوش نیستم ولی گوش میدم...'
 ];
 let phIdx = 0;
-setInterval(() => {
-  if(document.activeElement === msgInput || msgInput.value) return;
-  phIdx = (phIdx + 1) % placeholders.length;
-  msgInput.setAttribute('placeholder', placeholders[phIdx]);
-}, 4200);
+if(!document.body.classList.contains('perf-lite')){
+  setInterval(() => {
+    if(document.activeElement === msgInput || msgInput.value) return;
+    phIdx = (phIdx + 1) % placeholders.length;
+    msgInput.setAttribute('placeholder', placeholders[phIdx]);
+  }, 4200);
+}
 
 /* ================================================================
    SECTION O — INIT
