@@ -723,7 +723,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   padding:8px; display:flex; flex-direction:column; gap:2px;
   opacity:0; transform:translateY(10px) scale(.95); pointer-events:none;
   transition:opacity .25s var(--ease-out), transform .3s var(--ease-spring);
-  z-index:20;
+  z-index:20; background:var(--panel); border:1px solid var(--glass-border);
+  box-shadow:0 12px 36px rgba(0,0,0,.4);
 }
 .plus-menu.open{ opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
 .plus-menu-item{
@@ -749,6 +750,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;
 }
 
+#mic-btn{ transition:width .3s var(--ease-spring), opacity .25s, transform .3s var(--ease-spring), margin .3s var(--ease-spring); overflow:hidden; }
+#mic-btn.mic-collapsed{ width:0; opacity:0; transform:scale(.5); margin:0; pointer-events:none; }
 #mic-btn.recording{ background:linear-gradient(135deg, var(--danger), var(--magenta)); color:#fff; animation:micPulse calc(1.2s / var(--anim-speed)) ease-in-out infinite; }
 @keyframes micPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(251,113,133,.5);} 50%{ box-shadow:0 0 0 8px rgba(251,113,133,0);} }
 
@@ -875,10 +878,11 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 
 /* -- rate-limit lockout: inline banner (chat stays visible, only sending is blocked) -- */
 #lockout-banner{
-  display:none; align-items:center; gap:14px; max-width:820px; margin:0 auto;
-  padding:14px 20px; border-radius:26px;
+  display:none; flex-direction:column; gap:14px; max-width:820px; margin:0 auto;
+  padding:16px 20px; border-radius:26px;
 }
 #lockout-banner.show{ display:flex; animation:msgIn .4s var(--ease-spring) both; }
+.lockout-top-row{ display:flex; align-items:center; gap:14px; }
 .lockout-nose-mini{ position:relative; width:44px; height:44px; flex-shrink:0; }
 .lockout-nose-mini .nose-svg{
   width:100%; height:100%; animation:sleepyBreathe calc(4s / var(--anim-speed)) ease-in-out infinite;
@@ -905,8 +909,30 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   background:linear-gradient(90deg, var(--violet-soft), var(--cyan));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
+.lockout-actions{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.lockout-discount-row{ display:flex; gap:8px; flex:1; min-width:200px; }
+.lockout-discount-row input{
+  flex:1; padding:9px 12px; border-radius:999px; font-size:.78rem;
+  background:var(--glass-fill); border:1px solid var(--glass-border); color:var(--ink);
+}
+.lockout-discount-row .modal-btn{ flex:none; padding:9px 16px; font-size:.78rem; }
+.lockout-plus-btn{
+  padding:9px 16px; border-radius:999px; font-size:.78rem; font-weight:700; color:#1c1330;
+  background:linear-gradient(120deg, var(--gold), var(--magenta));
+  transition:transform .3s var(--ease-spring), box-shadow .3s;
+}
+.lockout-plus-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,72,153,.35); }
+
 .about-body{ font-size:.85rem; line-height:2; color:var(--ink-dim); text-align:center; }
 .about-body b{ color:var(--ink); }
+
+/* -- دماغ پلاس pricing card -- */
+.plus-plan-card{ text-align:center; }
+.plus-plan-price{
+  font-family:var(--font-display); font-weight:800; font-size:2.2rem; margin:10px 0 18px; color:var(--ink);
+}
+.plus-plan-price span{ display:block; font-size:.75rem; font-weight:500; color:var(--ink-faint); margin-top:2px; }
+.plus-plan-features{ list-style:none; text-align:right; margin-bottom:20px; display:flex; flex-direction:column; gap:10px; font-size:.85rem; color:var(--ink-dim); }
 
 /* toast */
 #toast{
@@ -1245,13 +1271,24 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       </div>
 
       <div id="lockout-banner" class="glass">
-        <div class="lockout-nose-mini">
-          <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
-          <span class="zzz">z</span><span class="zzz">z</span><span class="zzz">Z</span>
+        <div class="lockout-top-row">
+          <div class="lockout-nose-mini">
+            <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
+            <span class="zzz">z</span><span class="zzz">z</span><span class="zzz">Z</span>
+          </div>
+          <div class="lockout-text">
+            <b>دماغ خوابش برده 😴 — زیاد ازش سؤال پرسیدی</b>
+            <span>چت‌های قبلی رو می‌تونی ببینی، فقط تا <span id="lockout-countdown">--:--:--</span> دیگه نمی‌تونی پیام جدید بفرستی</span>
+          </div>
         </div>
-        <div class="lockout-text">
-          <b>دماغ خوابش برده 😴 — زیاد ازش سؤال پرسیدی</b>
-          <span>چت‌های قبلی رو می‌تونی ببینی، فقط تا <span id="lockout-countdown">--:--:--</span> دیگه نمی‌تونی پیام جدید بفرستی</span>
+        <div class="lockout-actions">
+          <div class="lockout-discount-row">
+            <input type="text" id="discount-code-input" placeholder="کد تخفیف داری؟">
+            <button class="modal-btn ghost" id="discount-code-btn">اعمال کن</button>
+          </div>
+          <button class="lockout-plus-btn" id="lockout-plus-btn">
+            🚀 با <b>دماغ پلاس</b> دیگه هیچ‌وقت لیمیت نخور
+          </button>
         </div>
       </div>
 
@@ -1390,6 +1427,15 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       <div class="field-hint" id="budget-hint">در حال محاسبه...</div>
     </div>
 
+    <div class="field">
+      <div class="toggle-row">
+        <label style="margin-bottom:0;">حافظه‌ی دماغ 🐽</label>
+        <div class="switch" id="memory-switch"></div>
+      </div>
+      <div class="field-hint" id="memory-hint">وقتی روشنه، دماغ نکته‌های مهم و پایدار درباره‌ت (نه هر چیزی) رو یادش می‌مونه و توی گفتگوهای بعدی هم به‌خاطر می‌آره — همه‌چی فقط توی همین مرورگر ذخیره می‌شه.</div>
+      <button class="modal-btn ghost" id="clear-memory-btn" style="margin-top:10px;">پاک کردن حافظه</button>
+    </div>
+
     <div class="modal-btn-row">
       <button class="modal-btn danger" id="wipe-btn">پاک‌سازی کامل حافظه</button>
       <button class="modal-btn confirm" id="save-settings-btn">ذخیره</button>
@@ -1432,6 +1478,30 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     <div class="modal-btn-row">
       <button class="modal-btn ghost" id="nose-gate-yes">آره دماغم 👃</button>
       <button class="modal-btn confirm" id="nose-gate-no">نه، آدمم 🙋</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     دماغ پلاس — display-only mock pricing (not a real purchase flow)
+     ============================================================ -->
+<div class="modal-overlay" id="plus-plan-overlay">
+  <div class="modal-box glass-strong" style="text-align:center;">
+    <div class="modal-head">
+      <h3>🚀 دماغ پلاس</h3>
+      <button class="modal-close" id="plus-plan-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="plus-plan-card">
+      <div class="plus-plan-price">۲۹۹<span>هزار تومن / ماه</span></div>
+      <ul class="plus-plan-features">
+        <li>✅ بدون لیمیت ۵ ساعته (احتمالاً)</li>
+        <li>✅ دماغ سریع‌تر بو می‌کشه</li>
+        <li>✅ بج طلایی «دماغِ پول‌دار» کنار اسمت</li>
+        <li>✅ اولویت توی صف سطل‌آشغال</li>
+        <li>✅ چت با نسخه‌ی خودشیفته‌تر دماغ</li>
+      </ul>
+      <button class="modal-btn confirm" id="plus-plan-buy" style="width:100%;">خرید دماغ پلاس</button>
+      <div class="field-hint" style="margin-top:10px;">این فقط یه نمایشه — چیزی واقعاً خریداری نمی‌شه 😄</div>
     </div>
   </div>
 </div>
@@ -1546,6 +1616,7 @@ const defaultSettings = {
   model: MODEL,          // currently selected model id (e.g. "gemini-2.5-pro")
   modelList: [],          // last successfully fetched model list (cache, optional)
   mood: "happy",          // happy | angry | confused | sad
+  memoryEnabled: true,
   temperature: 1.0,
   maxTokens: 384,
   theme: "dark",
@@ -1554,6 +1625,7 @@ const defaultSettings = {
 };
 
 let settings = loadJSON(LS.settings, defaultSettings);
+if(settings.memoryEnabled === undefined) settings.memoryEnabled = true;
 let chats = loadJSON(LS.chats, {});          // { chatId: { id, title, messages:[{role,text}] } }
 let activeChatId = localStorage.getItem(LS.activeChat) || null;
 let isStreaming = false;
@@ -1566,8 +1638,22 @@ let webSearchEnabled = false;
 let thinkModeEnabled = false;
 let pendingImage = null; // { mimeType, data (base64, no prefix), previewUrl }
 
+/* -------- memory (persisted facts the assistant chooses to remember) -------- */
+const LS_MEMORY = 'namagh_memory';
+function loadMemory(){ return loadJSON(LS_MEMORY, []); }
+function saveMemoryList(list){ localStorage.setItem(LS_MEMORY, JSON.stringify(list)); }
+function addMemory(fact){
+  const list = loadMemory();
+  fact = fact.trim();
+  if(!fact || list.includes(fact)) return;
+  list.push(fact);
+  if(list.length > 40) list.shift(); // cap so the prompt doesn't grow forever
+  saveMemoryList(list);
+}
+function clearMemory(){ saveMemoryList([]); }
+
 const THINK_DAILY_LIMIT = 5;
-const RATE_LIMIT_TOKENS = 100000;     // total tokens (in+out) allowed per window
+const RATE_LIMIT_TOKENS = 40000;      // total tokens (in+out) allowed per window
 const RATE_LIMIT_WINDOW_MS = 5 * 60 * 60 * 1000; // 5 hours
 
 function todayKey(){ return new Date().toISOString().slice(0,10); }
@@ -1747,7 +1833,30 @@ function applySettingsToDOM(){
   document.querySelectorAll('#theme-seg-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
   const currentPerfMode = localStorage.getItem(LS_PERF) || 'auto';
   document.querySelectorAll('#perf-seg-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.perf === currentPerfMode));
+  $('#memory-switch').classList.toggle('on', !!settings.memoryEnabled);
+  updateMemoryUI();
 }
+function updateMemoryUI(){
+  const count = loadMemory().length;
+  const hintEl = $('#memory-hint');
+  if(!hintEl) return;
+  hintEl.textContent = settings.memoryEnabled
+    ? (count ? `${count.toLocaleString('fa-IR')} تا نکته یادشه. وقتی روشنه، دماغ نکته‌های مهم و پایدار درباره‌ت رو یادش می‌مونه — همه‌چی فقط توی همین مرورگر.` : 'هنوز چیزی یاد نگرفته. وقتی روشنه، دماغ نکته‌های مهم و پایدار درباره‌ت رو یادش می‌مونه — همه‌چی فقط توی همین مرورگر.')
+    : 'خاموشه — دماغ چیزی درباره‌ت به‌خاطر نمی‌سپاره.';
+}
+$('#memory-switch').addEventListener('click', () => {
+  settings.memoryEnabled = !settings.memoryEnabled;
+  $('#memory-switch').classList.toggle('on', settings.memoryEnabled);
+  saveSettings();
+  updateMemoryUI();
+  showToast(settings.memoryEnabled ? '🐽 حافظه‌ی دماغ روشن شد' : '🐽 حافظه‌ی دماغ خاموش شد');
+});
+$('#clear-memory-btn').addEventListener('click', () => {
+  if(!confirm('همه‌ی چیزایی که دماغ یادش مونده پاک بشه؟')) return;
+  clearMemory();
+  updateMemoryUI();
+  showToast('🐽 حافظه‌ی دماغ خالی شد');
+});
 
 function applyMood(mood){
   Object.keys(MOODS).forEach(m => document.body.classList.remove('mood-' + m));
@@ -1899,12 +2008,12 @@ function renderChat(){
     return;
   }
   chatTitleEl.textContent = chats[activeChatId].title;
-  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false, m.image));
+  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false, m.image, m.thinking));
   scrollToBottom();
   parseEmoji(chatInner);
 }
 
-function appendMessageDOM(role, text, idx, animate=true, image){
+function appendMessageDOM(role, text, idx, animate=true, image, thinking){
   const row = document.createElement('div');
   row.className = 'msg-row ' + (role === 'user' ? 'user' : 'ai');
   if(!animate) row.style.animation = 'none';
@@ -1916,6 +2025,13 @@ function appendMessageDOM(role, text, idx, animate=true, image){
   const bubbleWrap = document.createElement('div');
   bubbleWrap.style.display = 'flex'; bubbleWrap.style.flexDirection = 'column'; bubbleWrap.style.minWidth = '0';
   bubbleWrap.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
+
+  if(thinking){
+    const think = document.createElement('details');
+    think.className = 'think-block glass';
+    think.innerHTML = `<summary>👃 چه فکرایی کردم؟</summary><div class="think-body">${escapeHTML(thinking).replace(/\n/g,'<br>')}</div>`;
+    bubbleWrap.appendChild(think);
+  }
 
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble glass' + (role === 'ai' ? ' assistant-glow' : '');
@@ -2160,6 +2276,7 @@ refreshModelsBtn.addEventListener('click', () => {
 function autoGrow(){
   msgInput.style.height = 'auto';
   msgInput.style.height = Math.min(msgInput.scrollHeight, 180) + 'px';
+  $('#mic-btn').classList.toggle('mic-collapsed', msgInput.value.trim().length > 0 || !!pendingImage);
 }
 msgInput.addEventListener('input', autoGrow);
 const isTouchPrimary = window.matchMedia('(pointer:coarse)').matches;
@@ -2226,6 +2343,41 @@ function hideLockout(){
   msgInput.disabled = false;
   clearInterval(lockoutIntervalId);
 }
+
+/* -------- discount code: bypasses the current lockout, max once per 48h -------- */
+const LS_DISCOUNT = 'namagh_discount_last_use';
+const DISCOUNT_CODE = 'asghar';
+const DISCOUNT_COOLDOWN_MS = 48 * 60 * 60 * 1000;
+function applyDiscountCode(){
+  const input = $('#discount-code-input');
+  const code = input.value.trim().toLowerCase();
+  if(!code){ showToast('یه کد بزن اول'); return; }
+  if(code !== DISCOUNT_CODE){ showToast('❌ کد اشتباهه'); return; }
+  const lastUse = Number(localStorage.getItem(LS_DISCOUNT) || 0);
+  const remain = DISCOUNT_COOLDOWN_MS - (Date.now() - lastUse);
+  if(lastUse && remain > 0){
+    const hoursLeft = Math.ceil(remain / 3600000);
+    showToast(`⏳ این کد رو هر ۴۸ ساعت فقط یه‌بار می‌شه زد — ${hoursLeft.toLocaleString('fa-IR')} ساعت دیگه مونده`);
+    return;
+  }
+  localStorage.setItem(LS_DISCOUNT, String(Date.now()));
+  rateLimitState = { tokensUsed:0, lockoutUntil:null };
+  saveRateLimit();
+  hideLockout();
+  updateBudgetUI();
+  input.value = '';
+  showToast('🎉 کد قبول شد، دماغ بیدار شد!');
+}
+$('#discount-code-btn').addEventListener('click', applyDiscountCode);
+$('#discount-code-input').addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); applyDiscountCode(); } });
+
+/* -------- دماغ پلاس: display-only mock, no real purchase flow -------- */
+$('#lockout-plus-btn').addEventListener('click', () => openModal('#plus-plan-overlay'));
+$('#plus-plan-close').addEventListener('click', () => closeModal('#plus-plan-overlay'));
+$('#plus-plan-overlay').addEventListener('click', (e) => { if(e.target.id === 'plus-plan-overlay') closeModal('#plus-plan-overlay'); });
+$('#plus-plan-buy').addEventListener('click', () => {
+  showToast('😄 این فقط یه نمایشه — دماغ پلاس واقعی وجود نداره');
+});
 function updateBudgetUI(){
   const fillEl = $('#budget-fill'), hintEl = $('#budget-hint');
   if(!fillEl || !hintEl) return;
@@ -2344,6 +2496,18 @@ const THINK_ADDON =
   "(چند خط کوتاه و بامزه، انگار داری بو می‌کشی و با خودت فکر می‌کنی)، یه خط خالی بذار، " +
   "و بعدش طبق قانون همیشگی ادامه بده (شروع با همون عبارت ثابت و بعد جواب نهایی).";
 
+function buildMemoryAddon(){
+  const list = loadMemory();
+  const recall = list.length
+    ? `چیزایی که قبلاً درباره‌ی این کاربر یاد گرفتی: ${list.join(' | ')}. `
+    : '';
+  return recall +
+    "اگه توی همین پیام کاربر یه نکته‌ی مهم و پایدار درباره‌ی خودش گفت که ارزش به‌خاطر سپردن داره برای آینده " +
+    "(مثلاً اسمش، شغلش، علایق مشخص، ترجیحاتش) — و قبلاً یادت نبود — در همون انتهای پاسخ، بعد از همه‌چیز، " +
+    "یه خط جدا بذار و بین [YAD] و [/YAD] خیلی کوتاه (حداکثر یه جمله) همون نکته رو بنویس. " +
+    "این کارو فقط وقتی واقعاً نکته‌ی جدید و به‌دردبخوری هست بکن، نه توی هر پیام و نه برای حرف‌های الکی.";
+}
+
 async function requestAssistantReply(skipExtras){
   const chat = chats[activeChatId];
   const apiKey = settings.apiKey || API_KEY_DEFAULT;
@@ -2370,7 +2534,7 @@ async function requestAssistantReply(skipExtras){
 
     const body = {
       contents,
-      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + ' ' + (MOOD_INSTRUCTIONS[settings.mood] || '') + (useThink ? ' ' + THINK_ADDON : '') }] },
+      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + ' ' + (MOOD_INSTRUCTIONS[settings.mood] || '') + (useThink ? ' ' + THINK_ADDON : '') + (settings.memoryEnabled ? ' ' + buildMemoryAddon() : '') }] },
       generationConfig: {
         temperature: settings.temperature,
         maxOutputTokens: useThink ? settings.maxTokens + 300 : settings.maxTokens
@@ -2388,12 +2552,18 @@ async function requestAssistantReply(skipExtras){
     if(!res.ok){
       const errData = await res.json().catch(()=>({}));
       const apiMsg = errData?.error?.message || '(بدون توضیح از سرور)';
-      // a 400 while web-search/think-mode was on is very likely the model
-      // rejecting that extra field — retry once with a plain request instead
-      // of just failing, since most models don't support both features
-      if(res.status === 400 && (useThink || useSearch) && !skipExtras){
+      const isRecoverable = res.status === 400 || res.status === 403 || res.status === 429;
+      // a 400/403/429 while web-search/think-mode was on is very likely tied
+      // to that extra feature specifically (unsupported field, or a separate
+      // quota just for Grounding with Google Search) — retry once plain
+      // instead of just failing, since normal generation is usually fine
+      if(isRecoverable && (useThink || useSearch) && !skipExtras){
         isStreaming = false; setSendBtnState('idle');
-        showToast('⚠️ این مدل با «جستجوی وب/فکر کردن» ساز نیست، بدون اونا دوباره امتحان می‌کنم...');
+        if(useSearch && (res.status === 429 || res.status === 403)){
+          showToast('🌐 ظاهراً سهمیه‌ی جستجوی وب کلیدت تمومه (این جدا از سهمیه‌ی معمولی جنریته) — بدون جستجو دوباره امتحان می‌کنم...');
+        } else {
+          showToast('⚠️ این مدل با «جستجوی وب/فکر کردن» ساز نیست، بدون اونا دوباره امتحان می‌کنم...');
+        }
         await requestAssistantReply(true);
         return;
       }
@@ -2403,8 +2573,22 @@ async function requestAssistantReply(skipExtras){
     const data = await res.json();
     recordTokenUsage(data?.usageMetadata?.totalTokenCount);
 
-    let reply = data?.candidates?.[0]?.content?.parts?.map(p => p.text).join('') || '';
-    if(!reply) throw new Error('پاسخ خالی از مدل دریافت شد (شاید finishReason غیرعادی بوده — فیلتر ایمنی یا قطع زودهنگام).');
+    const candidate = data?.candidates?.[0];
+    let reply = (candidate?.content?.parts || []).filter(p => p && p.text).map(p => p.text).join('');
+
+    if(!reply){
+      // web-search/think-mode responses occasionally come back with only
+      // grounding metadata and no synthesized text part — same fix as the
+      // 400 case: retry once plain before giving up
+      if((useThink || useSearch) && !skipExtras){
+        isStreaming = false; setSendBtnState('idle');
+        showToast('⚠️ این پاسخ با «جستجوی وب/فکر کردن» خالی برگشت، بدون اونا دوباره امتحان می‌کنم...');
+        await requestAssistantReply(true);
+        return;
+      }
+      const reason = candidate?.finishReason ? ` (finishReason: ${candidate.finishReason})` : '';
+      throw new Error('پاسخ خالی از مدل دریافت شد' + reason + '.');
+    }
 
     let thinking = '';
     const thinkMatch = reply.match(/\[FEKR\]([\s\S]*?)\[\/FEKR\]/i);
@@ -2415,6 +2599,19 @@ async function requestAssistantReply(skipExtras){
       updateThinkToggleUI();
     }
 
+    if(settings.memoryEnabled){
+      const yadMatch = reply.match(/\[YAD\]([\s\S]*?)\[\/YAD\]/i);
+      if(yadMatch){
+        const fact = yadMatch[1].trim();
+        reply = reply.replace(yadMatch[0], '').trim();
+        if(fact){
+          addMemory(fact);
+          updateMemoryUI();
+          showToast(`🐽 تو دماغ گندم سیو شد: «${fact.length > 60 ? fact.slice(0,60)+'…' : fact}»`);
+        }
+      }
+    }
+
     if(!reply.trim().startsWith(PERSONA_PREFIX)){
       reply = PERSONA_PREFIX + ' ' + reply.trim();
     }
@@ -2422,7 +2619,7 @@ async function requestAssistantReply(skipExtras){
     setTypingIndicator(false);
     await streamAssistantMessage(reply, thinking);
 
-    chat.messages.push({ role:'assistant', text: reply });
+    chat.messages.push({ role:'assistant', text: reply, thinking: thinking || undefined });
     saveChats(); renderHistory();
 
   } catch(err){
@@ -2541,29 +2738,60 @@ $('#image-file-input').addEventListener('change', (e) => {
   }).catch(() => showToast('⚠️ خوندن عکس ناموفق بود'));
   e.target.value = '';
 });
-function compressImage(file, maxDim, quality){
+function readFileAsDataUrl(file){
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = reject;
-      img.onload = () => {
-        let { width, height } = img;
-        if(width > maxDim || height > maxDim){
-          const scale = maxDim / Math.max(width, height);
-          width = Math.round(width * scale); height = Math.round(height * scale);
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = width; canvas.height = height;
-        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        resolve({ mimeType: 'image/jpeg', data: dataUrl.split(',')[1], previewUrl: dataUrl });
-      };
-      img.src = reader.result;
-    };
+    reader.onload = () => resolve(reader.result);
     reader.readAsDataURL(file);
   });
+}
+
+function canvasLooksBlank(canvas){
+  try{
+    const ctx = canvas.getContext('2d');
+    const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    // sample a handful of pixels across the image instead of every pixel (cheap check)
+    const step = Math.max(4, Math.floor(data.length / 4 / 200) * 4);
+    let nonBlack = 0;
+    for(let i = 0; i < data.length; i += step){
+      if(data[i] > 8 || data[i+1] > 8 || data[i+2] > 8){ nonBlack++; }
+    }
+    return nonBlack === 0;
+  } catch(e){ return false; } // can't verify (e.g. tainted canvas) — assume it's fine
+}
+
+async function compressImage(file, maxDim, quality){
+  const dataUrl = await readFileAsDataUrl(file);
+  try{
+    const img = new Image();
+    img.src = dataUrl;
+    // img.decode() waits for the image to be fully, correctly decoded before we
+    // draw it — plain onload can fire prematurely on some older Android WebViews
+    // (e.g. Huawei Browser), producing a blank/black canvas
+    if(img.decode){ await img.decode(); }
+    else { await new Promise((res, rej) => { img.onload = res; img.onerror = rej; }); }
+
+    let { width, height } = img;
+    if(!width || !height) throw new Error('ابعاد عکس صفره');
+    if(width > maxDim || height > maxDim){
+      const scale = maxDim / Math.max(width, height);
+      width = Math.round(width * scale); height = Math.round(height * scale);
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+
+    if(canvasLooksBlank(canvas)) throw new Error('canvas خروجی سیاه داد');
+
+    const outUrl = canvas.toDataURL('image/jpeg', quality);
+    return { mimeType: 'image/jpeg', data: outUrl.split(',')[1], previewUrl: outUrl };
+  } catch(err){
+    // compression failed or produced garbage — fall back to the original file
+    // untouched rather than silently sending/showing a broken black image
+    const mimeType = file.type || 'image/jpeg';
+    return { mimeType, data: dataUrl.split(',')[1], previewUrl: dataUrl };
+  }
 }
 function renderAttachPreview(){
   const row = $('#attach-preview-row');
@@ -2578,10 +2806,22 @@ function renderAttachPreview(){
   row.appendChild(chip);
 }
 
-/* -------- voice input (on-device browser speech recognition) -------- */
+/* -------- voice input (browser speech recognition) -------- */
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognizer = null, isRecording = false;
-if(SpeechRecognitionCtor){
+const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+let recognizer = null, isRecording = false, micSafetyTimer = null;
+
+function micReset(){
+  isRecording = false;
+  clearTimeout(micSafetyTimer);
+  $('#mic-btn').classList.remove('recording');
+}
+function micStop(){
+  micReset();
+  try{ recognizer && recognizer.stop(); } catch(e){ /* already stopped, ignore */ }
+}
+
+if(SpeechRecognitionCtor && (window.isSecureContext || location.protocol === 'file:')){
   recognizer = new SpeechRecognitionCtor();
   recognizer.lang = 'fa-IR';
   recognizer.interimResults = true;
@@ -2592,18 +2832,34 @@ if(SpeechRecognitionCtor){
     msgInput.value = text;
     autoGrow();
   };
-  recognizer.onend = () => { isRecording = false; $('#mic-btn').classList.remove('recording'); };
-  recognizer.onerror = () => { isRecording = false; $('#mic-btn').classList.remove('recording'); showToast('🎤 تشخیص صدا قطع شد'); };
+  recognizer.onend = micReset;
+  recognizer.onerror = (e) => {
+    micReset();
+    const reason = e && e.error;
+    if(reason === 'not-allowed' || reason === 'service-not-allowed'){
+      showToast('🎤 اجازه‌ی میکروفون رد شد — از تنظیمات مرورگر بدش');
+    } else if(reason === 'no-speech'){
+      showToast('🎤 چیزی نشنیدم، دوباره امتحان کن');
+    } else {
+      showToast('🎤 تشخیص صدا قطع شد');
+    }
+  };
 } else {
   $('#mic-btn').style.display = 'none';
 }
+
 $('#mic-btn').addEventListener('click', () => {
   if(!recognizer) return;
-  if(isRecording){ recognizer.stop(); return; }
+  if(isRecording){ micStop(); return; } // always resets UI immediately — never gets stuck
+  if(isIOSDevice && !window.isSecureContext){
+    showToast('🎤 روی iOS، ورودی صوتی فقط با HTTPS کار می‌کنه (نه فایل محلی)');
+    return;
+  }
   isRecording = true;
   $('#mic-btn').classList.add('recording');
   showToast('🎤 دماغ داره گوش می‌ده... حرف بزن');
-  try{ recognizer.start(); } catch(e){ isRecording = false; $('#mic-btn').classList.remove('recording'); }
+  micSafetyTimer = setTimeout(micStop, 15000); // hard cap so it can never hang forever
+  try{ recognizer.start(); } catch(e){ micReset(); showToast('🎤 میکروفون در دسترس نبود'); }
 });
 
 /* -------- sidebar open/close, mobile-aware -------- */
@@ -2778,25 +3034,37 @@ function showToast(msg){
    ================================================================ */
 const askSelBtn = $('#ask-selection-btn');
 let lastSelectedText = '';
+function evaluateSelectionForAsk(){
+  const sel = window.getSelection();
+  const text = sel ? sel.toString().trim() : '';
+  if(!text || text.length < 2){ askSelBtn.classList.remove('show'); return; }
+  const anchor = sel.anchorNode;
+  const withinMessage = anchor && chatInner.contains(anchor.nodeType === 1 ? anchor : anchor.parentElement);
+  if(!withinMessage){ askSelBtn.classList.remove('show'); return; }
+  lastSelectedText = text;
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  const btnW = askSelBtn.offsetWidth || 140;
+  askSelBtn.style.left = Math.min(Math.max(btnW/2 + 8, rect.left + rect.width / 2), window.innerWidth - btnW/2 - 8) + 'px';
+  askSelBtn.style.top = Math.max(50, rect.top) + 'px';
+  askSelBtn.classList.add('show');
+}
 document.addEventListener('mouseup', (e) => {
   if(askSelBtn.contains(e.target)) return; // don't hide right as we click it
-  setTimeout(() => {
-    const sel = window.getSelection();
-    const text = sel ? sel.toString().trim() : '';
-    if(!text || text.length < 2){ askSelBtn.classList.remove('show'); return; }
-    const anchor = sel.anchorNode;
-    const withinMessage = anchor && chatInner.contains(anchor.nodeType === 1 ? anchor : anchor.parentElement);
-    if(!withinMessage){ askSelBtn.classList.remove('show'); return; }
-    lastSelectedText = text;
-    const rect = sel.getRangeAt(0).getBoundingClientRect();
-    askSelBtn.style.left = (rect.left + rect.width / 2) + 'px';
-    askSelBtn.style.top = Math.max(50, rect.top) + 'px';
-    askSelBtn.classList.add('show');
-  }, 0);
+  setTimeout(evaluateSelectionForAsk, 0);
+});
+// touch-based selection (mobile) doesn't reliably fire mouseup — selectionchange
+// fires for every input method, so it's the more robust cross-device trigger
+let selChangeTimer = null;
+document.addEventListener('selectionchange', () => {
+  clearTimeout(selChangeTimer);
+  selChangeTimer = setTimeout(evaluateSelectionForAsk, 250);
 });
 document.addEventListener('mousedown', (e) => {
   if(!askSelBtn.contains(e.target)) askSelBtn.classList.remove('show');
 });
+document.addEventListener('touchstart', (e) => {
+  if(!askSelBtn.contains(e.target)) askSelBtn.classList.remove('show');
+}, { passive: true });
 askSelBtn.addEventListener('click', () => {
   const quoted = lastSelectedText.length > 240 ? lastSelectedText.slice(0, 240) + '…' : lastSelectedText;
   const prefix = msgInput.value.trim() ? msgInput.value.trim() + '\n\n' : '';
@@ -2894,6 +3162,7 @@ if(!document.body.classList.contains('perf-lite')){
    SECTION O — INIT
    ================================================================ */
 function init(){
+  $('#history-search').value = ''; // some browsers restore input values on refresh — don't let a stale search hide everything
   applySettingsToDOM();
   initWelcome();
   ensureChat();
