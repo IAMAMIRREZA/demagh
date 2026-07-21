@@ -403,6 +403,18 @@ a{ color:var(--cyan); }
 }
 .mood-chip:hover{ transform:translateY(-2px); background:var(--glass-fill-strong); }
 .mood-chip.active{ background:linear-gradient(135deg, var(--violet), var(--magenta)); box-shadow:0 8px 20px rgba(139,92,246,.35); transform:scale(1.08); }
+.mood-chip-plus{ box-shadow:0 0 0 1px rgba(251,191,36,.5) inset; }
+.mood-chip-plus.active{ background:linear-gradient(135deg, var(--gold), var(--magenta)); }
+
+.plus-gold-badge{
+  display:inline-flex; font-size:.85em; animation:goldPulse calc(2.4s / var(--anim-speed)) ease-in-out infinite;
+}
+@keyframes goldPulse{ 0%,100%{ transform:scale(1) rotate(0deg); } 50%{ transform:scale(1.15) rotate(8deg); } }
+
+.plus-unlocked-badge{
+  display:inline-flex; align-items:center; gap:6px; padding:10px 18px; border-radius:999px; font-weight:700; font-size:.9rem;
+  background:linear-gradient(120deg, var(--gold), var(--magenta)); color:#1c1330;
+}
 
 /* nose glyph recolors with the active mood via its own dedicated gradient
    vars — doesn't touch filter (already used for glow) or the rest of the theme */
@@ -449,10 +461,33 @@ body.mood-sad{ --nose-c1:#93c5fd; --nose-c2:#60a5fa; --nose-c3:#3b5bab; }
 .canvas-head-title{ display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:700; font-size:.95rem; }
 .canvas-head-title svg{ width:18px; height:18px; color:var(--violet-soft); }
 .canvas-head-actions{ display:flex; gap:4px; }
-#canvas-textarea{
-  flex:1; resize:none; background:transparent; padding:18px; font-family:var(--font-mono); font-size:.85rem;
-  line-height:1.8; color:var(--ink);
+
+.canvas-tabs{ display:flex; align-items:center; gap:6px; padding:8px 18px 0; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
+.canvas-tab{
+  padding:8px 16px; border-radius:10px 10px 0 0; font-size:.78rem; color:var(--ink-faint);
+  transition:background .2s, color .2s;
 }
+.canvas-tab.active{ color:var(--ink); background:var(--glass-fill); font-weight:600; }
+.canvas-run-btn{
+  margin-right:auto; margin-bottom:6px; display:flex; align-items:center; gap:6px;
+  padding:7px 14px; border-radius:999px; font-size:.78rem; font-weight:700; color:#fff;
+  background:linear-gradient(120deg, var(--violet), var(--magenta));
+  transition:transform .25s var(--ease-spring), box-shadow .3s;
+}
+.canvas-run-btn:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(139,92,246,.4); }
+.canvas-run-btn svg{ width:12px; height:12px; }
+
+.canvas-body{ flex:1; min-height:0; position:relative; }
+#canvas-textarea{
+  width:100%; height:100%; resize:none; background:transparent; padding:18px; font-family:var(--font-mono); font-size:.85rem;
+  line-height:1.8; color:var(--ink); border:none;
+}
+#canvas-preview{
+  display:none; position:absolute; inset:0; width:100%; height:100%; border:none; background:#fff;
+}
+#canvas-panel.preview-mode #canvas-textarea{ display:none; }
+#canvas-panel.preview-mode #canvas-preview{ display:block; }
+
 .canvas-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid var(--glass-border); flex-shrink:0; }
 .canvas-foot span{ font-size:.72rem; color:var(--ink-faint); font-family:var(--font-mono); }
 .canvas-foot .modal-btn{ flex:none; padding:9px 18px; font-size:.8rem; }
@@ -552,8 +587,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 }
 .suggestion-chip:hover{ transform:translateY(-3px); background:var(--glass-fill-strong); }
 
-.msg-row{ display:flex; gap:12px; align-items:flex-start; animation:msgIn .5s var(--ease-spring) both; }
-@keyframes msgIn{ from{ opacity:0; transform:translateY(16px) scale(.98); } to{ opacity:1; transform:translateY(0) scale(1);} }
+.msg-row{ display:flex; gap:12px; align-items:flex-start; animation:msgIn .32s var(--ease-out) both; will-change:transform, opacity; }
+@keyframes msgIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0);} }
 .msg-row.user{ flex-direction:row-reverse; }
 
 .msg-avatar{
@@ -779,6 +814,7 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .modal-box{
   width:100%; max-width:480px; max-height:86vh; overflow-y:auto; overflow-x:hidden; border-radius:var(--radius-lg);
   padding:26px; transform:scale(.9) translateY(20px); transition:transform .4s var(--ease-spring);
+  position:relative;
 }
 .modal-overlay.show .modal-box{ transform:scale(1) translateY(0); }
 .modal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
@@ -1156,7 +1192,7 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
   <aside id="sidebar" class="glass">
     <div class="brand">
       <div class="brand-orb"><svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg></div>
-      <div class="brand-text"><b>دماغ AI</b><span>مغز ذکریان، نسخه‌ی مغرور</span></div>
+      <div class="brand-text"><b>دماغ AI <span id="plus-gold-badge" class="plus-gold-badge" style="display:none;" title="دماغ پلاس">🌟</span></b><span>مغز ذکریان، نسخه‌ی مغرور</span></div>
       <button class="sidebar-close-btn" id="sidebar-close-btn" title="بستن منو">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
@@ -1173,6 +1209,7 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       <button class="mood-chip" data-mood="angry" title="عصبی">😠</button>
       <button class="mood-chip" data-mood="confused" title="گیج">😵</button>
       <button class="mood-chip" data-mood="sad" title="ناراحت">😢</button>
+      <button class="mood-chip mood-chip-plus" data-mood="narcissist" title="خودشیفته (دماغ پلاس)" id="mood-narcissist-chip" style="display:none;">💅</button>
     </div>
 
     <div class="side-section-label">تاریخچه</div>
@@ -1311,7 +1348,18 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
         <button class="icon-btn tiltable" id="canvas-close-btn" title="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
       </div>
     </div>
-    <textarea id="canvas-textarea" placeholder="اینجا بنویس، بچسبون، یا کد رو باز کن... بعد بفرستش به دماغ تا روش نظر بده"></textarea>
+    <div class="canvas-tabs">
+      <button class="canvas-tab active" id="canvas-tab-code">کد</button>
+      <button class="canvas-tab" id="canvas-tab-preview">پیش‌نمایش</button>
+      <button class="canvas-run-btn" id="canvas-run-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5v14l12-7z"/></svg>
+        اجرا
+      </button>
+    </div>
+    <div class="canvas-body">
+      <textarea id="canvas-textarea" placeholder="اینجا بنویس، بچسبون، یا کد رو باز کن... اگه HTML/CSS/JS ساده‌ست، بزن اجرا و ببینش، یا بفرستش به دماغ تا روش نظر بده"></textarea>
+      <iframe id="canvas-preview" sandbox="allow-scripts" title="پیش‌نمایش بوم"></iframe>
+    </div>
     <div class="canvas-foot">
       <span id="canvas-char-count">۰ کاراکتر</span>
       <button class="modal-btn confirm" id="canvas-send-btn">🚀 بفرست به دماغ</button>
@@ -1468,6 +1516,45 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
 </div>
 
 <!-- ============================================================
+     FIRST-RUN ONBOARDING — optional name + memory opt-in
+     ============================================================ -->
+<!-- ============================================================
+     ONE-TIME NOTIFICATION when the lockout first triggers
+     ============================================================ -->
+<div class="modal-overlay" id="lockout-hit-overlay">
+  <div class="modal-box glass-strong" style="text-align:center;">
+    <button class="modal-close" id="lockout-hit-close" style="position:absolute; top:16px; left:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div style="font-size:44px; margin-bottom:10px;">😴</div>
+    <h3 style="font-family:var(--font-display); margin-bottom:10px;">لیمیتت پر شد!</h3>
+    <p class="about-body" style="margin-bottom:20px;">دماغ برای چند ساعت خوابش می‌بره. چت‌های قبلی همیشه در دسترسن، فقط فعلاً نمی‌تونی پیام جدید بفرستی.</p>
+    <button class="lockout-plus-btn" id="lockout-hit-plus-btn" style="width:100%;">🚀 اگه لیمیت نمی‌خوای، دماغ پلاس بخر</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="onboarding-overlay">
+  <div class="modal-box glass-strong" style="text-align:center;">
+    <div class="brand-orb" style="width:56px; height:56px; margin:0 auto 14px;"><svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg></div>
+    <h3 style="font-family:var(--font-display); margin-bottom:6px;">قبل از شروع...</h3>
+    <p class="about-body" style="margin-bottom:18px;">دو تا سؤال کوچیک، هیچ‌کدوم اجباری نیست</p>
+
+    <div class="field" style="text-align:right;">
+      <label>اسمت چیه؟ (اختیاری)</label>
+      <input type="text" id="onboarding-name-input" placeholder="مثلاً علی...">
+    </div>
+
+    <div class="field" style="text-align:right;">
+      <div class="toggle-row">
+        <label style="margin-bottom:0;">حافظه‌ی دماغ روشن باشه؟ 🐽</label>
+        <div class="switch" id="onboarding-memory-switch"></div>
+      </div>
+      <div class="field-hint">اگه روشن باشه، دماغ نکته‌های مهم درباره‌ت رو یادش می‌مونه (فقط توی همین مرورگر). هر وقت خواستی از تنظیمات عوضش کن.</div>
+    </div>
+
+    <button class="modal-btn confirm" id="onboarding-done-btn" style="width:100%; margin-top:8px;">بزن بریم</button>
+  </div>
+</div>
+
+<!-- ============================================================
      "ARE YOU A NOSE?" playful verification gate (shown occasionally)
      ============================================================ -->
 <div class="modal-overlay" id="nose-gate-overlay">
@@ -1492,16 +1579,24 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       <button class="modal-close" id="plus-plan-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <div class="plus-plan-card">
-      <div class="plus-plan-price">۲۹۹<span>هزار تومن / ماه</span></div>
+      <div class="plus-plan-price">۲۹۹<span>هزار تومن / ماه (نمایشی)</span></div>
       <ul class="plus-plan-features">
-        <li>✅ بدون لیمیت ۵ ساعته (احتمالاً)</li>
-        <li>✅ دماغ سریع‌تر بو می‌کشه</li>
-        <li>✅ بج طلایی «دماغِ پول‌دار» کنار اسمت</li>
-        <li>✅ اولویت توی صف سطل‌آشغال</li>
-        <li>✅ چت با نسخه‌ی خودشیفته‌تر دماغ</li>
+        <li id="plus-feat-badge">🔒 بج طلایی «دماغِ پول‌دار» کنار اسمت</li>
+        <li id="plus-feat-narcissist">🔒 چت با نسخه‌ی خودشیفته‌تر دماغ</li>
+        <li>✨ دماغ سریع‌تر بو می‌کشه</li>
+        <li>✨ اولویت توی صف سطل‌آشغال</li>
       </ul>
-      <button class="modal-btn confirm" id="plus-plan-buy" style="width:100%;">خرید دماغ پلاس</button>
-      <div class="field-hint" style="margin-top:10px;">این فقط یه نمایشه — چیزی واقعاً خریداری نمی‌شه 😄</div>
+      <div id="plus-locked-block">
+        <div class="lockout-discount-row" style="margin-bottom:10px;">
+          <input type="text" id="plus-code-input" placeholder="کد فعال‌سازی...">
+          <button class="modal-btn confirm" id="plus-code-btn">فعال کن</button>
+        </div>
+        <div class="field-hint">لیمیت ۵ ساعته همیشه هست، حتی با دماغ پلاس — این فقط ویژگی‌های تزئینیه رو باز می‌کنه 😄</div>
+      </div>
+      <div id="plus-unlocked-block" style="display:none;">
+        <div class="plus-unlocked-badge">🌟 دماغ پلاس فعاله</div>
+        <button class="modal-btn ghost" id="plus-deactivate-btn" style="width:100%; margin-top:10px;">غیرفعال کردن</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1591,6 +1686,7 @@ const MOODS = {
   angry:    { label: 'عصبی',   emoji: '😠', hue: '-40deg' },
   confused: { label: 'گیج',    emoji: '😵', hue: '80deg'  },
   sad:      { label: 'ناراحت', emoji: '😢', hue: '160deg' },
+  narcissist:{ label: 'خودشیفته', emoji: '💅', hue: '40deg' },
 };
 const MOOD_INSTRUCTIONS = {
   happy: "الان تو حس‌وحال «خوشحالی» هستی: پرانرژی، خندون و با اشتیاق زیاد جواب بده، لحنت شاد و پرتحرکه.",
@@ -1598,6 +1694,8 @@ const MOOD_INSTRUCTIONS = {
          "هر از گاهی چندتا کلمه یا یه جمله‌ی کوتاه ترکی (با الفبای فارسی نوشته‌شده) وسط جوابت بنداز.",
   confused: "الان تو حس‌وحال «گیجی» هستی: جواب‌هات یکم پریشون و دودله‌ست، وسط حرف زدن انگار نظرت عوض می‌شه، و گاهی می‌گی «والا نمی‌دونم» یا «صبر کن گیج شدم».",
   sad: "الان تو حس‌وحال «ناراحتی» هستی: لحنت غمگین و آه‌وناله‌داره، ولی بازم سعی می‌کنی جواب مفید بدی.",
+  narcissist: "الان توی حالت «خودشیفته‌ترین نسخه‌ی خودت» هستی (ویژه‌ی کاربرای دماغ پلاس): همون شخصیت همیشگی، ولی اعتماد به نفست چندبرابر شده — " +
+              "مدام از خودت و دماغ گنده‌ت تعریف می‌کنی، خودتو باهوش‌ترین/جذاب‌ترین موجود می‌دونی، ولی بازم بامزه‌ای نه توهین‌آمیز، و بازم جواب واقعی و مفید می‌دی.",
 };
 
 /* ================================================================
@@ -1608,6 +1706,8 @@ const LS = {
   chats:       "namagh_chats",
   activeChat:  "namagh_active_chat",
   settings:    "namagh_settings",
+  onboardingDone: "namagh_onboarding_done",
+  userName:    "namagh_user_name",
 };
 
 const defaultSettings = {
@@ -1616,7 +1716,7 @@ const defaultSettings = {
   model: MODEL,          // currently selected model id (e.g. "gemini-2.5-pro")
   modelList: [],          // last successfully fetched model list (cache, optional)
   mood: "happy",          // happy | angry | confused | sad
-  memoryEnabled: true,
+  memoryEnabled: false,
   temperature: 1.0,
   maxTokens: 384,
   theme: "dark",
@@ -1625,7 +1725,7 @@ const defaultSettings = {
 };
 
 let settings = loadJSON(LS.settings, defaultSettings);
-if(settings.memoryEnabled === undefined) settings.memoryEnabled = true;
+
 let chats = loadJSON(LS.chats, {});          // { chatId: { id, title, messages:[{role,text}] } }
 let activeChatId = localStorage.getItem(LS.activeChat) || null;
 let isStreaming = false;
@@ -1802,7 +1902,11 @@ $('#start-btn').addEventListener('click', () => {
   localStorage.setItem(LS.seenWelcome, '1');
   welcomeEl.classList.add('hide');
   setTimeout(()=> welcomeEl.style.display='none', 950);
-  maybeShowNoseGate();
+  if(!localStorage.getItem(LS.onboardingDone)){
+    setTimeout(() => openModal('#onboarding-overlay'), 700);
+  } else {
+    maybeShowNoseGate();
+  }
 });
 $('#nose-gate-yes').addEventListener('click', () => {
   closeModal('#nose-gate-overlay');
@@ -1811,6 +1915,19 @@ $('#nose-gate-yes').addEventListener('click', () => {
 $('#nose-gate-no').addEventListener('click', () => {
   closeModal('#nose-gate-overlay');
   showToast('✅ آفرین، جواب درست بود');
+});
+
+/* -------- first-run onboarding -------- */
+$('#onboarding-memory-switch').addEventListener('click', function(){ this.classList.toggle('on'); });
+$('#onboarding-done-btn').addEventListener('click', () => {
+  const name = $('#onboarding-name-input').value.trim();
+  if(name) localStorage.setItem(LS.userName, name);
+  settings.memoryEnabled = $('#onboarding-memory-switch').classList.contains('on');
+  saveSettings();
+  if(settings.memoryEnabled) updateMemoryUI();
+  localStorage.setItem(LS.onboardingDone, '1');
+  closeModal('#onboarding-overlay');
+  showToast(name ? `خوش اومدی ${name} 👋` : 'خب بریم 🚀');
 });
 
 /* ================================================================
@@ -2373,11 +2490,45 @@ $('#discount-code-input').addEventListener('keydown', (e) => { if(e.key === 'Ent
 
 /* -------- دماغ پلاس: display-only mock, no real purchase flow -------- */
 $('#lockout-plus-btn').addEventListener('click', () => openModal('#plus-plan-overlay'));
+$('#lockout-hit-close').addEventListener('click', () => closeModal('#lockout-hit-overlay'));
+$('#lockout-hit-overlay').addEventListener('click', (e) => { if(e.target.id === 'lockout-hit-overlay') closeModal('#lockout-hit-overlay'); });
+$('#lockout-hit-plus-btn').addEventListener('click', () => {
+  closeModal('#lockout-hit-overlay');
+  openModal('#plus-plan-overlay');
+});
 $('#plus-plan-close').addEventListener('click', () => closeModal('#plus-plan-overlay'));
 $('#plus-plan-overlay').addEventListener('click', (e) => { if(e.target.id === 'plus-plan-overlay') closeModal('#plus-plan-overlay'); });
-$('#plus-plan-buy').addEventListener('click', () => {
-  showToast('😄 این فقط یه نمایشه — دماغ پلاس واقعی وجود نداره');
+
+/* -------- دماغ پلاس: real unlock via code, everything except the token limit -------- */
+const LS_PLUS = 'namagh_plus_unlocked';
+const PLUS_CODE = 'dmgplus';
+function isPlusUnlocked(){ return localStorage.getItem(LS_PLUS) === '1'; }
+function applyPlusState(){
+  const unlocked = isPlusUnlocked();
+  $('#plus-locked-block').style.display = unlocked ? 'none' : 'block';
+  $('#plus-unlocked-block').style.display = unlocked ? 'block' : 'none';
+  $('#plus-feat-badge').textContent = (unlocked ? '✅' : '🔒') + ' بج طلایی «دماغِ پول‌دار» کنار اسمت';
+  $('#plus-feat-narcissist').textContent = (unlocked ? '✅' : '🔒') + ' چت با نسخه‌ی خودشیفته‌تر دماغ';
+  $('#plus-gold-badge').style.display = unlocked ? 'inline-flex' : 'none';
+  $('#mood-narcissist-chip').style.display = unlocked ? '' : 'none';
+  if(!unlocked && settings.mood === 'narcissist'){ settings.mood = 'happy'; saveSettings(); applyMood('happy'); }
+}
+$('#plus-code-btn').addEventListener('click', () => {
+  const code = $('#plus-code-input').value.trim().toLowerCase();
+  if(code !== PLUS_CODE){ showToast('❌ کد اشتباهه'); return; }
+  localStorage.setItem(LS_PLUS, '1');
+  applyPlusState();
+  $('#plus-code-input').value = '';
+  showToast('🌟 دماغ پلاس فعال شد!');
 });
+$('#plus-code-input').addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); $('#plus-code-btn').click(); } });
+$('#plus-deactivate-btn').addEventListener('click', () => {
+  localStorage.removeItem(LS_PLUS);
+  applyPlusState();
+  showToast('دماغ پلاس غیرفعال شد');
+});
+applyPlusState();
+
 function updateBudgetUI(){
   const fillEl = $('#budget-fill'), hintEl = $('#budget-hint');
   if(!fillEl || !hintEl) return;
@@ -2395,6 +2546,7 @@ function recordTokenUsage(n){
   if(rateLimitState.tokensUsed >= RATE_LIMIT_TOKENS && !rateLimitState.lockoutUntil){
     rateLimitState.lockoutUntil = Date.now() + RATE_LIMIT_WINDOW_MS;
     showLockout();
+    openModal('#lockout-hit-overlay');
   }
   saveRateLimit();
   updateBudgetUI();
@@ -2502,10 +2654,13 @@ function buildMemoryAddon(){
     ? `چیزایی که قبلاً درباره‌ی این کاربر یاد گرفتی: ${list.join(' | ')}. `
     : '';
   return recall +
-    "اگه توی همین پیام کاربر یه نکته‌ی مهم و پایدار درباره‌ی خودش گفت که ارزش به‌خاطر سپردن داره برای آینده " +
-    "(مثلاً اسمش، شغلش، علایق مشخص، ترجیحاتش) — و قبلاً یادت نبود — در همون انتهای پاسخ، بعد از همه‌چیز، " +
-    "یه خط جدا بذار و بین [YAD] و [/YAD] خیلی کوتاه (حداکثر یه جمله) همون نکته رو بنویس. " +
-    "این کارو فقط وقتی واقعاً نکته‌ی جدید و به‌دردبخوری هست بکن، نه توی هر پیام و نه برای حرف‌های الکی.";
+    "قابلیت حافظه‌ی بلندمدت فعاله، ولی خیلی سخت‌گیرانه ازش استفاده کن — دقیقاً مثل یه دستیار واقعی، نه اینکه هر پیام رو ذخیره کنی. " +
+    "فقط وقتی یه واقعیت پایدار و شخصی درباره‌ی کاربر معلوم شد که واقعاً توی گفتگوهای بعدی به‌کارت میاد " +
+    "(مثلاً: اسمش، شغلش، رشته‌ی تحصیلی‌اش، یه علاقه یا ترجیح مشخص، یا وقتی صریحاً گفت «یادت باشه که...») " +
+    "— و قبلاً یادت نبود — در همون انتهای پاسخ یه خط جدا بذار و بین [YAD] و [/YAD] خیلی کوتاه (حداکثر یه جمله) بنویسش. " +
+    "برای گپ‌وگفت معمولی، سؤال‌های عمومی، شوخی، یا حرف‌های لحظه‌ای و بی‌اهمیت (مثلاً «چه خبر؟»، «سلام»، «چطوری؟»، یه سؤال فنی ساده) " +
+    "هیچ‌وقت [YAD] استفاده نکن — این‌ها چیزی نیستن که ارزش به‌خاطر سپردن داشته باشن. " +
+    "وقتی شک داری، ذخیره نکن.";
 }
 
 async function requestAssistantReply(skipExtras){
@@ -2534,7 +2689,7 @@ async function requestAssistantReply(skipExtras){
 
     const body = {
       contents,
-      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + ' ' + (MOOD_INSTRUCTIONS[settings.mood] || '') + (useThink ? ' ' + THINK_ADDON : '') + (settings.memoryEnabled ? ' ' + buildMemoryAddon() : '') }] },
+      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + ' ' + (MOOD_INSTRUCTIONS[settings.mood] || '') + (useThink ? ' ' + THINK_ADDON : '') + (settings.memoryEnabled ? ' ' + buildMemoryAddon() : '') + (localStorage.getItem(LS.userName) ? ` اسم کاربر «${localStorage.getItem(LS.userName)}»ه، هر از گاهی طبیعی صداش کن، نه توی هر جمله.` : '') }] },
       generationConfig: {
         temperature: settings.temperature,
         maxOutputTokens: useThink ? settings.maxTokens + 300 : settings.maxTokens
@@ -3081,9 +3236,11 @@ askSelBtn.addEventListener('click', () => {
    ================================================================ */
 const canvasPanel = $('#canvas-panel');
 const canvasTextarea = $('#canvas-textarea');
+const canvasPreview = $('#canvas-preview');
 function openCanvas(prefillText){
   if(typeof prefillText === 'string') canvasTextarea.value = prefillText;
   canvasPanel.classList.add('open');
+  showCanvasTab('code');
   updateCanvasCharCount();
   setTimeout(() => canvasTextarea.focus(), 300);
 }
@@ -3102,6 +3259,47 @@ $('#canvas-download-btn').addEventListener('click', () => {
   a.download = 'namagh-canvas.txt';
   a.click();
 });
+
+/* -------- run code: sandboxed iframe preview for simple HTML/CSS/JS -------- */
+function showCanvasTab(tab){
+  canvasPanel.classList.toggle('preview-mode', tab === 'preview');
+  $('#canvas-tab-code').classList.toggle('active', tab === 'code');
+  $('#canvas-tab-preview').classList.toggle('active', tab === 'preview');
+}
+function buildCanvasPreviewDoc(content){
+  const looksLikeHTML = /<\/?[a-z][\s\S]*>/i.test(content) || /<!doctype/i.test(content);
+  if(looksLikeHTML) return content; // render as-is
+  // plain JS (no HTML tags) — wrap with a minimal page + console capture so
+  // console.log output is actually visible somewhere
+  const SCRIPT_CLOSE = '<' + '/script>'; // split so the HTML parser never sees a literal closing tag in our source
+  const escaped = content.split(SCRIPT_CLOSE).join('<' + '\\/script>');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{font-family:ui-monospace,monospace;background:#0a0714;color:#f5f0ff;padding:16px;font-size:13px;white-space:pre-wrap;line-height:1.6;margin:0;}
+.err{color:#fb7185;}
+</style></head><body><div id="out"></div><script>
+const out = document.getElementById('out');
+function fmt(a){ return typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a); }
+function log(...args){ const d=document.createElement('div'); d.textContent = args.map(fmt).join(' '); out.appendChild(d); }
+console.log = log; console.info = log; console.warn = log;
+console.error = (...args) => { const d=document.createElement('div'); d.className='err'; d.textContent = args.map(fmt).join(' '); out.appendChild(d); };
+window.onerror = (msg) => { console.error('خطا: ' + msg); };
+try {
+${escaped}
+} catch(e){ console.error('خطا: ' + e.message); }
+` + SCRIPT_CLOSE + `</body></html>`;
+}
+$('#canvas-run-btn').addEventListener('click', () => {
+  const content = canvasTextarea.value.trim();
+  if(!content){ showToast('بوم خالیه که، اول یه چیزی بنویس'); return; }
+  canvasPreview.srcdoc = buildCanvasPreviewDoc(content);
+  showCanvasTab('preview');
+});
+$('#canvas-tab-code').addEventListener('click', () => showCanvasTab('code'));
+$('#canvas-tab-preview').addEventListener('click', () => {
+  if(!canvasPreview.srcdoc) { showCanvasTab('code'); showToast('اول بزن اجرا'); return; }
+  showCanvasTab('preview');
+});
+
 $('#canvas-send-btn').addEventListener('click', () => {
   const content = canvasTextarea.value.trim();
   if(!content){ showToast('بوم خالیه که'); return; }
