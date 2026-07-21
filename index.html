@@ -971,6 +971,84 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .plus-plan-features{ list-style:none; text-align:right; margin-bottom:20px; display:flex; flex-direction:column; gap:10px; font-size:.85rem; color:var(--ink-dim); }
 
 /* toast */
+/* ============================================================
+   VOICE CALL — immersive full-screen call UI
+   ============================================================ */
+#voice-call-overlay{
+  position:fixed; inset:0; z-index:400; display:none;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(139,92,246,.35), transparent 55%),
+    radial-gradient(circle at 30% 80%, rgba(236,72,153,.25), transparent 55%),
+    var(--void);
+  opacity:0; transition:opacity .4s var(--ease-out);
+}
+#voice-call-overlay.show{ display:block; opacity:1; }
+.vc-content{
+  position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:22px; padding:40px 20px;
+}
+.vc-minimize{
+  position:absolute; top:24px; left:24px; width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; background:var(--glass-fill); color:var(--ink);
+}
+.vc-minimize svg{ width:18px; height:18px; }
+.vc-status-label{
+  font-family:var(--font-display); font-size:1.1rem; color:var(--ink-dim);
+  animation:vcFade .3s var(--ease-out) both;
+}
+@keyframes vcFade{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
+.vc-timer{ font-family:var(--font-mono); font-size:.85rem; color:var(--ink-faint); letter-spacing:1px; min-height:1.2em; }
+
+.vc-orb-wrap{ position:relative; width:220px; height:220px; }
+.vc-orb-wrap .nose-svg{ width:100%; height:100%; filter:drop-shadow(0 10px 40px rgba(139,92,246,.6)); }
+.vc-orb-glow{
+  position:absolute; inset:0; border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.3), rgba(139,92,246,.35) 45%, transparent 72%);
+  animation:orbBreathe calc(3s / var(--anim-speed)) ease-in-out infinite;
+}
+.vc-ring{
+  position:absolute; inset:0; border-radius:50%; border:1.5px solid var(--violet-soft); opacity:0;
+}
+#voice-call-overlay.state-calling .vc-ring{ animation:vcRingPulse 1.6s ease-out infinite; }
+.vc-ring:nth-child(2){ animation-delay:.5s !important; border-color:var(--cyan); }
+.vc-ring:nth-child(3){ animation-delay:1s !important; border-color:var(--gold); }
+@keyframes vcRingPulse{ 0%{ transform:scale(.8); opacity:.6; } 100%{ transform:scale(1.6); opacity:0; } }
+
+#voice-call-overlay.state-listening .vc-orb-wrap .nose-svg{ animation:orbBreathe calc(1.6s / var(--anim-speed)) ease-in-out infinite; }
+#voice-call-overlay.state-thinking .vc-orb-wrap{ animation:vcThinkSpin calc(1.4s / var(--anim-speed)) linear infinite; }
+@keyframes vcThinkSpin{ from{ transform:rotate(0deg) scale(1); } 50%{ transform:rotate(180deg) scale(1.05); } to{ transform:rotate(360deg) scale(1); } }
+#voice-call-overlay.state-speaking .vc-orb-wrap .nose-svg{ animation:vcSpeakPulse calc(.5s / var(--anim-speed)) ease-in-out infinite; }
+@keyframes vcSpeakPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
+
+.vc-waveform{ position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); display:none; gap:4px; align-items:flex-end; height:20px; }
+#voice-call-overlay.state-speaking .vc-waveform{ display:flex; }
+.vc-waveform span{
+  width:4px; border-radius:2px; background:linear-gradient(var(--cyan), var(--magenta));
+  animation:vcWave calc(.6s / var(--anim-speed)) ease-in-out infinite;
+}
+.vc-waveform span:nth-child(1){ height:6px; animation-delay:0s; }
+.vc-waveform span:nth-child(2){ height:14px; animation-delay:.1s; }
+.vc-waveform span:nth-child(3){ height:20px; animation-delay:.2s; }
+.vc-waveform span:nth-child(4){ height:14px; animation-delay:.3s; }
+.vc-waveform span:nth-child(5){ height:6px; animation-delay:.4s; }
+@keyframes vcWave{ 0%,100%{ transform:scaleY(.4); } 50%{ transform:scaleY(1); } }
+
+.vc-caption{
+  max-width:min(90vw,420px); min-height:2.6em; text-align:center; font-size:.88rem; color:var(--ink-dim); line-height:1.8;
+  transition:opacity .3s;
+}
+
+.vc-controls{ display:flex; gap:22px; margin-top:10px; }
+.vc-btn{
+  width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--glass-fill-strong); color:var(--ink); transition:transform .25s var(--ease-spring), background .25s;
+}
+.vc-btn svg{ width:24px; height:24px; }
+.vc-btn:hover{ transform:translateY(-3px) scale(1.05); }
+.vc-btn.muted{ background:linear-gradient(135deg, var(--gold), var(--violet)); }
+.vc-end-btn{ background:linear-gradient(135deg, var(--danger), #b91c1c); color:#fff; transform:rotate(135deg); }
+.vc-end-btn:hover{ transform:rotate(135deg) translateY(-3px) scale(1.05); }
+
 #toast{
   position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); z-index:300;
   padding:12px 22px; border-radius:999px; font-size:.82rem; opacity:0; transition:opacity .35s var(--ease-out), transform .35s var(--ease-spring);
@@ -1286,6 +1364,10 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
               <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg></span>
               باز کردن بوم دماغ
             </button>
+            <button class="plus-menu-item" id="menu-voicecall-btn">
+              <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13 1 .36 1.98.68 2.92a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.16-1.16a2 2 0 012.11-.45c.94.32 1.92.55 2.92.68A2 2 0 0122 16.92z"/></svg></span>
+              تماس صوتی با دماغ
+            </button>
             <button class="plus-menu-item" id="menu-websearch-btn">
               <span class="pmi-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.3 2.5 3.6 5.5 3.6 9s-1.3 6.5-3.6 9c-2.3-2.5-3.6-5.5-3.6-9s1.3-6.5 3.6-9z"/></svg></span>
               جستجوی وب <span class="pmi-state" id="pmi-ws-state"></span>
@@ -1521,6 +1603,41 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
 <!-- ============================================================
      ONE-TIME NOTIFICATION when the lockout first triggers
      ============================================================ -->
+<!-- ============================================================
+     VOICE CALL — full-screen call-style UI with the nose
+     ============================================================ -->
+<div id="voice-call-overlay">
+  <div class="vc-content">
+    <button class="vc-minimize" id="vc-minimize-btn" title="بستن">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="vc-status-label" id="vc-status-label">دارم به دماغ زنگ می‌زنم...</div>
+    <div class="vc-timer" id="vc-timer"></div>
+
+    <div class="vc-orb-wrap" id="vc-orb-wrap">
+      <div class="vc-ring"></div>
+      <div class="vc-ring"></div>
+      <div class="vc-ring"></div>
+      <div class="vc-orb-glow"></div>
+      <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
+      <div class="vc-waveform" id="vc-waveform">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <div class="vc-caption" id="vc-caption"></div>
+
+    <div class="vc-controls">
+      <button class="vc-btn" id="vc-mute-btn" title="قطع میکروفون">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
+      </button>
+      <button class="vc-btn vc-end-btn" id="vc-end-btn" title="قطع تماس">
+        <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 9c-2.5 0-4.9.6-7 1.7a1 1 0 00-.5 1.2l1 3a1 1 0 001.2.6 12 12 0 012.6-.7 1 1 0 00.8-1v-1.6a9.5 9.5 0 013.8 0V14a1 1 0 00.8 1c.9.1 1.8.4 2.6.7a1 1 0 001.2-.6l1-3a1 1 0 00-.5-1.2A16 16 0 0012 9z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="lockout-hit-overlay">
   <div class="modal-box glass-strong" style="text-align:center;">
     <button class="modal-close" id="lockout-hit-close" style="position:absolute; top:16px; left:16px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
@@ -3015,6 +3132,147 @@ $('#mic-btn').addEventListener('click', () => {
   showToast('🎤 دماغ داره گوش می‌ده... حرف بزن');
   micSafetyTimer = setTimeout(micStop, 15000); // hard cap so it can never hang forever
   try{ recognizer.start(); } catch(e){ micReset(); showToast('🎤 میکروفون در دسترس نبود'); }
+});
+
+/* ================================================================
+   SECTION M4 — VOICE CALL: a live back-and-forth voice conversation,
+   styled like an actual phone call with the nose.
+   ================================================================ */
+let vcActive = false, vcMuted = false, vcTimerInterval = null, vcStartTime = 0, vcRecognizer = null;
+
+function vcSetState(state){
+  const overlay = $('#voice-call-overlay');
+  ['calling','listening','thinking','speaking'].forEach(s => overlay.classList.remove('state-' + s));
+  overlay.classList.add('state-' + state);
+  const labels = { calling:'دارم به دماغ زنگ می‌زنم...', listening:'گوش می‌دم...', thinking:'داره فکر می‌کنه...', speaking:'داره حرف می‌زنه...' };
+  $('#vc-status-label').textContent = labels[state] || '';
+}
+function vcStartTimer(){
+  vcStartTime = Date.now();
+  clearInterval(vcTimerInterval);
+  vcTimerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - vcStartTime) / 1000);
+    $('#vc-timer').textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  }, 500);
+}
+function openVoiceCall(){
+  if(!SpeechRecognitionCtor){ showToast('🎤 مرورگرت از تشخیص صدا پشتیبانی نمی‌کنه — تماس صوتی ممکن نیست'); return; }
+  if(!('speechSynthesis' in window)){ showToast('🔊 مرورگرت از خروجی صدا پشتیبانی نمی‌کنه'); return; }
+  if(isIOSDevice && !window.isSecureContext){ showToast('🎤 روی iOS این قابلیت فقط با HTTPS کار می‌کنه'); return; }
+  if(!settings.apiKey || !modelsReady){ showToast('⚠️ اول باید کلید API و مدل آماده باشه'); return; }
+  if(isLockedOut()){ showToast('😴 دماغ الان خوابه، بعداً امتحان کن'); return; }
+  vcActive = true; vcMuted = false;
+  $('#vc-mute-btn').classList.remove('muted');
+  $('#vc-caption').textContent = '';
+  $('#voice-call-overlay').classList.add('show');
+  vcSetState('calling');
+  vcStartTimer();
+  setTimeout(() => { if(vcActive){ vcSetState('listening'); vcStartListening(); } }, 1400);
+}
+function closeVoiceCall(){
+  vcActive = false;
+  clearInterval(vcTimerInterval);
+  try{ window.speechSynthesis.cancel(); } catch(e){}
+  try{ vcRecognizer && vcRecognizer.stop(); } catch(e){}
+  $('#voice-call-overlay').classList.remove('show');
+}
+function vcStartListening(){
+  if(!vcActive || vcMuted) return;
+  vcRecognizer = new SpeechRecognitionCtor();
+  vcRecognizer.lang = 'fa-IR';
+  vcRecognizer.interimResults = true;
+  vcRecognizer.continuous = false;
+  let finalText = '';
+  vcRecognizer.onresult = (e) => {
+    let text = '';
+    for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+    $('#vc-caption').textContent = text;
+    if(e.results[e.results.length - 1].isFinal) finalText = text;
+  };
+  vcRecognizer.onend = () => {
+    if(!vcActive) return;
+    if(finalText.trim()) vcHandleUserSpeech(finalText.trim());
+    else setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 400);
+  };
+  vcRecognizer.onerror = (e) => {
+    if(!vcActive) return;
+    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+      showToast('🎤 اجازه‌ی میکروفون رد شد'); closeVoiceCall(); return;
+    }
+    setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 400);
+  };
+  try{ vcRecognizer.start(); } catch(e){ setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 500); }
+}
+async function vcHandleUserSpeech(text){
+  vcSetState('thinking');
+  $('#vc-caption').textContent = text;
+  ensureChat();
+  const chat = chats[activeChatId];
+  if(chat.messages.length === 0) chat.title = text.slice(0, 32) + (text.length > 32 ? '…' : '');
+  chat.messages.push({ role:'user', text });
+  saveChats(); renderHistory();
+  appendMessageDOM('user', text, chat.messages.length - 1, true);
+  parseEmoji(chatInner); scrollToBottom();
+
+  const apiKey = settings.apiKey || API_KEY_DEFAULT;
+  try{
+    const contents = chat.messages.map(m => {
+      const parts = [];
+      if(m.text) parts.push({ text: m.text });
+      if(m.image) parts.push({ inline_data: { mime_type: m.image.mimeType, data: m.image.data } });
+      if(parts.length === 0) parts.push({ text: '' });
+      return { role: m.role === 'user' ? 'user' : 'model', parts };
+    });
+    const voiceInstruction = ' توی حالت تماس صوتی هستی: جواب‌هات رو کوتاه، محاوره‌ای و طبیعی بگو چون قراره با صدا خونده بشه — بدون مارک‌داون، بدون لیست، بدون ستاره یا هشتگ.';
+    const body = {
+      contents,
+      systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION + ' ' + (MOOD_INSTRUCTIONS[settings.mood] || '') + (settings.memoryEnabled ? ' ' + buildMemoryAddon() : '') + voiceInstruction + (localStorage.getItem(LS.userName) ? ` اسم کاربر «${localStorage.getItem(LS.userName)}»ه.` : '') }] },
+      generationConfig: { temperature: settings.temperature, maxOutputTokens: 220 }
+    };
+    const res = await fetch(GEMINI_ENDPOINT(settings.model), { method:'POST', headers: geminiHeaders(apiKey), body: JSON.stringify(body) });
+    if(!res.ok){ const err = await res.json().catch(()=>({})); throw new Error(err?.error?.message || `HTTP ${res.status}`); }
+    const data = await res.json();
+    recordTokenUsage(data?.usageMetadata?.totalTokenCount);
+    let reply = (data?.candidates?.[0]?.content?.parts || []).filter(p => p && p.text).map(p => p.text).join('');
+    if(!reply) throw new Error('پاسخ خالی بود');
+    if(!reply.trim().startsWith(PERSONA_PREFIX)) reply = PERSONA_PREFIX + ' ' + reply.trim();
+
+    chat.messages.push({ role:'assistant', text: reply });
+    saveChats(); renderHistory();
+    appendMessageDOM('ai', reply, chat.messages.length - 1, true);
+    parseEmoji(chatInner); scrollToBottom();
+
+    if(vcActive) vcSpeak(reply.replace(PERSONA_PREFIX, '').trim());
+  } catch(err){
+    if(!vcActive) return;
+    vcSetState('listening');
+    showToast('⚠️ ' + friendlyFetchError(err));
+    if(!vcMuted) vcStartListening();
+  }
+}
+function vcSpeak(text){
+  vcSetState('speaking');
+  $('#vc-caption').textContent = text;
+  try{ window.speechSynthesis.cancel(); } catch(e){}
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'fa-IR';
+  const voices = window.speechSynthesis.getVoices();
+  const faVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('fa'));
+  if(faVoice) utter.voice = faVoice;
+  utter.rate = 1.05;
+  const resumeListening = () => { if(!vcActive) return; vcSetState('listening'); if(!vcMuted) vcStartListening(); };
+  utter.onend = resumeListening;
+  utter.onerror = resumeListening;
+  window.speechSynthesis.speak(utter);
+}
+$('#menu-voicecall-btn').addEventListener('click', () => { togglePlusMenu(false); openVoiceCall(); });
+$('#vc-end-btn').addEventListener('click', closeVoiceCall);
+$('#vc-minimize-btn').addEventListener('click', closeVoiceCall);
+$('#vc-mute-btn').addEventListener('click', () => {
+  vcMuted = !vcMuted;
+  $('#vc-mute-btn').classList.toggle('muted', vcMuted);
+  if(vcMuted){ try{ vcRecognizer && vcRecognizer.stop(); } catch(e){} }
+  else if(vcActive && $('#voice-call-overlay').classList.contains('state-listening')){ vcStartListening(); }
 });
 
 /* -------- sidebar open/close, mobile-aware -------- */
