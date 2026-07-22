@@ -1169,18 +1169,58 @@ body.compact-ui .msg-actions{ margin-top:2px; }
 #voice-call-overlay.state-speaking .vc-orb-wrap .nose-svg{ animation:vcSpeakPulse calc(.5s / var(--anim-speed)) ease-in-out infinite; }
 @keyframes vcSpeakPulse{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.06); } }
 
-.vc-waveform{ position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); display:none; gap:4px; align-items:flex-end; height:20px; }
+.vc-waveform{ position:absolute; bottom:-46px; left:50%; transform:translateX(-50%); display:none; gap:5px; align-items:flex-end; height:26px; filter:drop-shadow(0 0 12px rgba(56,232,255,.35)); }
 #voice-call-overlay.state-speaking .vc-waveform{ display:flex; }
 .vc-waveform span{
-  width:4px; border-radius:2px; background:linear-gradient(var(--cyan), var(--magenta));
+  width:5px; border-radius:99px; background:linear-gradient(var(--cyan), var(--magenta));
   animation:vcWave calc(.6s / var(--anim-speed)) ease-in-out infinite;
 }
-.vc-waveform span:nth-child(1){ height:6px; animation-delay:0s; }
-.vc-waveform span:nth-child(2){ height:14px; animation-delay:.1s; }
-.vc-waveform span:nth-child(3){ height:20px; animation-delay:.2s; }
-.vc-waveform span:nth-child(4){ height:14px; animation-delay:.3s; }
-.vc-waveform span:nth-child(5){ height:6px; animation-delay:.4s; }
+.vc-waveform span:nth-child(1){ height:8px; animation-delay:0s; }
+.vc-waveform span:nth-child(2){ height:18px; animation-delay:.1s; }
+.vc-waveform span:nth-child(3){ height:26px; animation-delay:.2s; }
+.vc-waveform span:nth-child(4){ height:18px; animation-delay:.3s; }
+.vc-waveform span:nth-child(5){ height:8px; animation-delay:.4s; }
 @keyframes vcWave{ 0%,100%{ transform:scaleY(.4); } 50%{ transform:scaleY(1); } }
+
+/* وقتی دماغ حرف می‌زنه، متن راهنما محو می‌شه تا موج صدا جا داشته باشه */
+#voice-call-overlay.state-speaking .vc-hint{ opacity:0; transition:opacity .25s; }
+
+/* ================= پاس ارتقای طراحی ================= */
+/* هایلایت متن با رنگ برند */
+::selection{ background:rgba(124,92,255,.45); color:#fff; }
+/* رینگ فوکوس برای کیبورد */
+:focus-visible{ outline:2px solid rgba(56,232,255,.55); outline-offset:2px; border-radius:6px; }
+/* اسکرول‌بار ظریف و گرادیانی */
+*::-webkit-scrollbar{ width:8px; height:8px; }
+*::-webkit-scrollbar-track{ background:transparent; }
+*::-webkit-scrollbar-thumb{ background:linear-gradient(180deg, rgba(124,92,255,.5), rgba(56,232,255,.35)); border-radius:99px; }
+*::-webkit-scrollbar-thumb:hover{ background:rgba(124,92,255,.7); }
+html{ scrollbar-width:thin; scrollbar-color:rgba(124,92,255,.5) transparent; }
+/* میکروتعاملات دکمه‌ها */
+.msg-actions button{ transition:transform .15s ease, color .15s ease; }
+.msg-actions button:hover{ transform:translateY(-1px); }
+.plus-menu-item{ transition:background .15s ease, transform .15s ease; }
+.plus-menu-item:hover{ transform:translateX(-2px); }
+.vc-btn{ transition:transform .15s ease, background .2s ease; }
+.vc-btn:active{ transform:scale(.9); }
+.modal-btn:active, .lb-btn:active{ transform:scale(.96); }
+/* کارت‌های تاریخچه با هاور بلند می‌شن */
+.chat-card{ transition:transform .2s ease, box-shadow .2s ease, background .2s ease; }
+.chat-card:hover{ transform:translateY(-3px); box-shadow:0 10px 30px rgba(0,0,0,.3); }
+/* سایه‌ی نرم روی حباب‌ها موقع هاور */
+.msg-bubble{ transition:box-shadow .25s ease; }
+.msg-bubble:hover{ box-shadow:0 8px 28px rgba(0,0,0,.28); }
+/* نقطه‌ی قرمز ضربان‌دار کنار تایمر تماس (حس تماس زنده) */
+.vc-timer::before{
+  content:''; display:inline-block; width:6px; height:6px; border-radius:50%;
+  background:var(--magenta); margin-inline-end:7px; vertical-align:middle;
+  animation:vcDotBlink 1.4s ease-in-out infinite;
+}
+@keyframes vcDotBlink{ 0%,100%{ opacity:.25; } 50%{ opacity:1; } }
+/* احترام به تنظیم «کاهش حرکت» سیستم کاربر */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
+}
 
 .vc-hint{ min-height:1.5em; font-size:.75rem; color:var(--ink-faint); text-align:center; padding:0 16px; }
 
@@ -4122,8 +4162,38 @@ function noteAiTtsFail(){
 }
 const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
 
+let vcAudioCtx = null;      /* WebAudio — روی iOS بعد از یه بار آنلاک همیشه مجازه */
+let vcCurrentSource = null; /* سورس در حال پخش برای قطع فوری */
+function vcEnsureCtx(){
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if(!AC) return null;
+  try{
+    if(!vcAudioCtx) vcAudioCtx = new AC();
+    if(vcAudioCtx.state === 'suspended'){ const p = vcAudioCtx.resume(); if(p && p.catch) p.catch(() => {}); }
+    return vcAudioCtx;
+  } catch(e){ return null; }
+}
+function pcmToAudioBuffer(ctx, b64, sampleRate){
+  const bin = atob(b64);
+  const n = Math.floor(bin.length / 2);
+  const buf = ctx.createBuffer(1, n, sampleRate);
+  const ch = buf.getChannelData(0);
+  for(let i = 0; i < n; i++){
+    let v = bin.charCodeAt(2 * i) | (bin.charCodeAt(2 * i + 1) << 8);
+    if(v >= 32768) v -= 65536;
+    ch[i] = v / 32768;
+  }
+  return buf;
+}
+function b64ToArrayBuffer(b64){
+  const bin = atob(b64);
+  const u8 = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return u8.buffer;
+}
 function vcUnlockAudio(){ // must run inside a user gesture (iOS/Android autoplay rules)
   try{
+    vcEnsureCtx(); /* آنلاک وب‌اودیو — راه مطمئن iOS */
     if(!vcSharedAudio) vcSharedAudio = new Audio();
     if(!vcSharedAudio.paused && vcSharedAudio.src !== SILENT_WAV) return; /* وسط پخش واقعی قطعش نکن */
     vcSharedAudio.src = SILENT_WAV;
@@ -4133,6 +4203,7 @@ function vcUnlockAudio(){ // must run inside a user gesture (iOS/Android autopla
 }
 function stopSpeaking(){
   vcTTSToken++;
+  if(vcCurrentSource){ try{ vcCurrentSource.stop(); } catch(e){} vcCurrentSource = null; }
   clearInterval(vcKeepAliveTimer);
   if(hasSpeechSynthesis){ try{ window.speechSynthesis.cancel(); } catch(e){} }
   if(vcSharedAudio){ try{ vcSharedAudio.pause(); } catch(e){} }
@@ -4214,30 +4285,57 @@ async function aiTtsFetch(text){
   }
   if(!inline) throw new Error('پاسخ صوتی خالی بود');
   const mt = inline.mimeType || inline.mime_type || '';
-  if(/l16|pcm/i.test(mt) || !mt){
-    const m = /rate=(\d+)/.exec(mt);
-    const blob = pcmBase64ToWavBlob(inline.data, m ? parseInt(m[1], 10) : 24000);
-    const u = URL.createObjectURL(blob);
-    return { src: u, revoke: u };
-  }
-  return { src: 'data:' + mt + ';base64,' + inline.data, revoke: null };
+  return { mt: mt, b64: inline.data };
 }
-function aiTtsPlay(piece, token){
-  return new Promise((resolve, reject) => {
-    if(token !== vcTTSToken){ if(piece.revoke){ try{ URL.revokeObjectURL(piece.revoke); } catch(e){} } resolve(); return; }
+async function aiTtsPlay(piece, token){
+  if(token !== vcTTSToken) return;
+  const rate = Number(settings.voiceRate) || 1;
+  const isPcm = /l16|pcm/i.test(piece.mt) || !piece.mt;
+  /* ۱) WebAudio — روی iOS/Safari/Edge بعد از آنلاک همیشه کار می‌کنه */
+  const ctx = vcEnsureCtx();
+  if(ctx && ctx.state === 'running'){
+    let buffer = null;
+    try{
+      if(isPcm){
+        const m = /rate=(\d+)/.exec(piece.mt);
+        buffer = pcmToAudioBuffer(ctx, piece.b64, m ? parseInt(m[1], 10) : 24000);
+      } else {
+        buffer = await ctx.decodeAudioData(b64ToArrayBuffer(piece.b64));
+      }
+    } catch(e){ buffer = null; }
+    if(buffer){
+      if(token !== vcTTSToken) return;
+      await new Promise((resolve) => {
+        const node = ctx.createBufferSource();
+        node.buffer = buffer;
+        try{ node.playbackRate.value = rate; } catch(e){}
+        node.connect(ctx.destination);
+        vcCurrentSource = node;
+        node.onended = () => { if(vcCurrentSource === node) vcCurrentSource = null; resolve(); };
+        try{ node.start(0); } catch(e){ resolve(); }
+      });
+      return;
+    }
+  }
+  /* ۲) عنصر صوتی معمولی (دسکتاپ/اندروید) */
+  let src = null, revoke = null;
+  if(isPcm){
+    const m = /rate=(\d+)/.exec(piece.mt);
+    const blob = pcmBase64ToWavBlob(piece.b64, m ? parseInt(m[1], 10) : 24000);
+    src = URL.createObjectURL(blob); revoke = src;
+  } else {
+    src = 'data:' + piece.mt + ';base64,' + piece.b64;
+  }
+  await new Promise((resolve, reject) => {
     if(!vcSharedAudio) vcSharedAudio = new Audio();
     const audio = vcSharedAudio;
     let settled = false;
-    const cleanup = () => { if(piece.revoke){ try{ URL.revokeObjectURL(piece.revoke); } catch(e){} } };
-    const done = () => {
-      if(settled) return; settled = true;
-      cleanup();
-      resolve();
-    };
+    const cleanup = () => { if(revoke){ try{ URL.revokeObjectURL(revoke); } catch(e){} } };
+    const done = () => { if(settled) return; settled = true; cleanup(); resolve(); };
     audio.onended = done;
     audio.onerror = () => done();
-    audio.src = piece.src;
-    try{ audio.playbackRate = Number(settings.voiceRate) || 1; } catch(e){}
+    audio.src = src;
+    try{ audio.playbackRate = rate; } catch(e){}
     const tryPlay = (attempt) => {
       const p = audio.play();
       if(p && p.catch) p.catch(() => {
@@ -4504,13 +4602,22 @@ async function vcSpeak(text){
   /* 1) صدای خود هوش مصنوعی — طبیعی‌ترین تلفظ فارسی (اولویت اصلی تماس) */
   if(!aiTtsBroken){
     try{ await speakWithAIVoice(speakText, after); return; }
-    catch(e){ if(!(e && e.message === 'AUTOPLAY')) noteAiTtsFail(); }
+    catch(e){
+      if(!(e && e.message === 'AUTOPLAY')) noteAiTtsFail();
+      try{ $('#vc-hint').textContent = 'صدای AI در دسترس نبود: ' + ((e && e.message) || ''); } catch(e2){}
+    }
   }
   if(!vcActive) return;
   /* 2) صدای فارسی نصب‌شده روی خود دستگاه */
   const faVoice = pickPersianVoice();
   if(faVoice){ speakWithLocalVoice(speakText, faVoice, after); return; }
-  /* 3) آخرین راه: صدای پیش‌فرض سیستم + زیرنویس روی صفحه */
+  /* 3) فارسی رو هیچ‌وقت با صدای انگلیسی نخون — زیرنویس + مکث طبیعی */
+  if(/[\u0600-\u06FF]/.test(speakText)){
+    try{ $('#vc-hint').textContent = 'صدای فارسی روی این دستگاه نیست — جواب رو زیرنویسی ببین'; } catch(e){}
+    const waitMs = Math.min(7000, Math.max(1800, speakText.length * 55));
+    setTimeout(() => { if(vcActive) after(); }, waitMs);
+    return;
+  }
   if(hasSpeechSynthesis) speakWithLocalVoice(speakText, null, after);
   else after();
 }
@@ -4541,6 +4648,11 @@ async function readAloud(text, btn){
   }
   const faVoice = pickPersianVoice();
   if(faVoice){ speakWithLocalVoice(speakText, faVoice, done); return; }
+  if(/[؀-ۿ]/.test(speakText)){
+    markReadBtn(null);
+    showToast('صدای فارسی روی این دستگاه نیست و صدای AI هم الان جواب نداد — دوباره امتحان کن');
+    return;
+  }
   if(hasSpeechSynthesis) speakWithLocalVoice(speakText, null, done);
   else { markReadBtn(null); showToast('🔇 این مرورگر خروجی صدا نداره'); }
 }
