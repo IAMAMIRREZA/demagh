@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>دماغ AI</title>
 <meta name="theme-color" content="#0a0714">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="دماغ AI">
+<meta name="application-name" content="دماغ AI">
 
 <!-- ============================================================
      FONTS — Vazirmatn (Persian display/body) + JetBrains Mono (code)
@@ -396,9 +401,9 @@ a{ color:var(--cyan); }
 .side-divider{ height:1px; background:var(--glass-border); margin:2px 0; }
 .side-section-label{ font-size:.7rem; color:var(--ink-faint); padding:6px 16px 2px; letter-spacing:.5px; }
 
-.mood-row{ display:flex; gap:8px; padding:2px 4px 4px; }
+.mood-row{ display:flex; flex-wrap:wrap; gap:8px; padding:2px 4px 4px; }
 .mood-chip{
-  flex:1; padding:9px 0; border-radius:var(--radius-sm); font-size:1.2rem; text-align:center;
+  flex:1 0 calc(25% - 8px); padding:9px 0; border-radius:var(--radius-sm); font-size:1.2rem; text-align:center;
   background:var(--glass-fill); transition:transform .3s var(--ease-spring), background .25s, box-shadow .3s;
 }
 .mood-chip:hover{ transform:translateY(-2px); background:var(--glass-fill-strong); }
@@ -422,6 +427,9 @@ body.mood-happy{ --nose-c1:#fde68a; --nose-c2:#fbbf24; --nose-c3:var(--magenta);
 body.mood-angry{ --nose-c1:#fca5a5; --nose-c2:#ef4444; --nose-c3:#b91c1c; }
 body.mood-confused{ --nose-c1:#a7f3d0; --nose-c2:#22d3ee; --nose-c3:var(--violet); }
 body.mood-sad{ --nose-c1:#93c5fd; --nose-c2:#60a5fa; --nose-c3:#3b5bab; }
+body.mood-professor{ --nose-c1:#c7d2fe; --nose-c2:#818cf8; --nose-c3:#4f46e5; }
+body.mood-poet{ --nose-c1:#fbcfe8; --nose-c2:#f472b6; --nose-c3:#be185d; }
+body.mood-gamer{ --nose-c1:#bbf7d0; --nose-c2:#4ade80; --nose-c3:#16a34a; }
 
 .history-search-row{
   display:flex; align-items:center; gap:8px; padding:8px 12px; margin:2px 0 6px; border-radius:var(--radius-sm);
@@ -443,7 +451,10 @@ body.mood-sad{ --nose-c1:#93c5fd; --nose-c2:#60a5fa; --nose-c3:#3b5bab; }
 @keyframes historyIn{ from{ opacity:0; transform:translateX(10px); } to{ opacity:1; transform:translateX(0); } }
 .history-item:hover{ background:var(--glass-fill); color:var(--ink); }
 .history-item.active{ background:var(--glass-fill-strong); color:var(--ink); box-shadow:inset 2px 0 0 var(--violet); }
-.history-item .del{ margin-right:auto; opacity:0; transition:opacity .2s; flex-shrink:0; }
+.history-item .del{ opacity:0; transition:opacity .2s; flex-shrink:0; }
+.history-item .ren{ margin-right:auto; opacity:0; transition:opacity .2s; flex-shrink:0; }
+.history-item:hover .ren{ opacity:.6; }
+.history-item .ren:hover{ opacity:1; color:var(--cyan); }
 .history-item:hover .del{ opacity:.6; }
 .history-item .del:hover{ opacity:1; color:var(--danger); }
 
@@ -487,6 +498,22 @@ body.mood-sad{ --nose-c1:#93c5fd; --nose-c2:#60a5fa; --nose-c3:#3b5bab; }
 }
 #canvas-panel.preview-mode #canvas-textarea{ display:none; }
 #canvas-panel.preview-mode #canvas-preview{ display:block; }
+#canvas-panel.open.maxed{ width:min(74%,940px); }
+
+/* -- حالت نقاشی: یه بوم واقعی -- */
+#canvas-draw-wrap{ display:none; position:absolute; inset:0; flex-direction:column; }
+#canvas-panel.draw-mode #canvas-draw-wrap{ display:flex; }
+#canvas-panel.draw-mode #canvas-textarea{ display:none; }
+#canvas-panel.draw-mode #canvas-preview{ display:none; }
+.draw-toolbar{ display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--glass-border); flex-wrap:wrap; flex-shrink:0; background:var(--glass-fill); }
+.draw-colors{ display:flex; gap:6px; flex-wrap:wrap; }
+.draw-color-dot{ width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,.25); cursor:pointer; transition:transform .2s var(--ease-spring), border-color .2s; }
+.draw-color-dot.active{ border-color:#fff; transform:scale(1.2); }
+.draw-tool{ width:34px; height:34px; border-radius:9px; background:var(--glass-fill-strong); display:flex; align-items:center; justify-content:center; font-size:.95rem; transition:transform .2s var(--ease-spring), background .2s; }
+.draw-tool:hover{ transform:translateY(-2px); }
+.draw-tool.active{ background:linear-gradient(135deg, var(--violet), var(--magenta)); }
+#draw-size{ width:84px; }
+#draw-canvas{ flex:1; min-height:0; width:100%; background:#fff; cursor:crosshair; touch-action:none; display:block; }
 
 .canvas-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:14px 18px; border-top:1px solid var(--glass-border); flex-shrink:0; }
 .canvas-foot span{ font-size:.72rem; color:var(--ink-faint); font-family:var(--font-mono); }
@@ -562,10 +589,12 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .feature-card{
   width:170px; padding:20px 16px; border-radius:var(--radius-md); text-align:center;
   display:flex; flex-direction:column; align-items:center; gap:6px;
-  transition:transform .15s ease-out, box-shadow .3s;
-  animation:titleIn .7s var(--ease-spring) both, cardBob calc(4.5s / var(--anim-speed)) ease-in-out .9s infinite;
+  transition:box-shadow .3s;
+  will-change:transform; /* روی GPU اجرا می‌شه — دیگه بریده‌بریده نیست */
+  animation:cardIn .8s ease both, cardBob calc(4.5s / var(--anim-speed)) ease-in-out .9s infinite;
 }
-@keyframes cardBob{ 0%,100%{ margin-top:0; } 50%{ margin-top:-6px; } }
+@keyframes cardIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes cardBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
 .feature-card:nth-child(1){ animation-delay:0s, 1s; }
 .feature-card:nth-child(2){ animation-delay:.08s, 1.4s; }
 .feature-card:nth-child(3){ animation-delay:.16s, 1.8s; }
@@ -588,7 +617,14 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .suggestion-chip:hover{ transform:translateY(-3px); background:var(--glass-fill-strong); }
 
 .msg-row{ display:flex; gap:12px; align-items:flex-start; animation:msgIn .32s var(--ease-out) both; will-change:transform, opacity; }
+/* فقط پیام‌های روی صفحه رندر می‌شن — چت‌های طولانی روی گوشی‌های ضعیف سبک می‌مونن */
+.msg-row{ content-visibility:auto; contain-intrinsic-block-size:auto 110px; }
 @keyframes msgIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0);} }
+/* شناور شدن ملایم حباب‌های پیام — فقط transform، روی GPU، بدون بریدگی */
+.msg-bubble{ animation:bubbleFloat calc(6s / var(--anim-speed)) ease-in-out infinite; }
+.msg-row:nth-child(even) .msg-bubble{ animation-delay:calc(1.6s / var(--anim-speed)); animation-duration:calc(7s / var(--anim-speed)); }
+.msg-row:nth-child(3n) .msg-bubble{ animation-delay:calc(3.1s / var(--anim-speed)); }
+@keyframes bubbleFloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
 .msg-row.user{ flex-direction:row-reverse; }
 
 .msg-avatar{
@@ -605,8 +641,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .msg-avatar.user{ background:var(--glass-fill-strong); border:1px solid var(--glass-border); }
 
 .msg-bubble{
-  max-width:min(78%,620px); padding:15px 18px; border-radius:var(--radius-md);
-  font-size:.94rem; line-height:1.95; position:relative;
+  max-width:min(92%,720px); padding:15px 18px; border-radius:var(--radius-md);
+  font-size:calc(.94rem * var(--chat-font-scale, 1)); line-height:1.95; position:relative;
   transition:transform .25s var(--ease-spring);
 }
 .msg-row.user .msg-bubble{
@@ -642,6 +678,7 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .msg-bubble pre:hover .code-actions{ opacity:1; }
 @media (hover:none){
   .code-actions{ opacity:.85; } /* touch devices can't hover — keep it visible */
+  .history-item .del, .history-item .ren, .history-item .pin{ opacity:.55; }
 }
 .tok-kw{ color:var(--magenta); } .tok-str{ color:var(--gold); } .tok-com{ color:var(--ink-faint); font-style:italic; } .tok-num{ color:var(--cyan); }
 
@@ -652,6 +689,8 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
   display:flex; gap:4px; margin-top:8px; opacity:0; transition:opacity .25s;
 }
 .msg-row:hover .msg-actions{ opacity:.85; }
+.msg-actions{ flex-wrap:wrap; }
+.msg-actions .act-speak.speaking-now{ opacity:1; color:#67e8f9; }
 .msg-actions button{
   font-size:.7rem; padding:5px 9px; border-radius:8px; color:var(--ink-faint);
   display:flex; align-items:center; gap:4px; transition:background .2s, color .2s;
@@ -678,10 +717,25 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .think-block{
   border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:8px; font-size:.8rem;
   animation:msgIn .4s var(--ease-spring) both;
+  border-right:3px solid var(--violet);
+  transition:border-color .4s, box-shadow .4s;
 }
 .think-block summary{ cursor:pointer; color:var(--ink-dim); font-weight:600; list-style:none; }
 .think-block summary::-webkit-details-marker{ display:none; }
-.think-block .think-body{ margin-top:8px; color:var(--ink-faint); line-height:1.8; }
+.think-block .think-body{ margin-top:8px; color:var(--ink-faint); line-height:1.8; white-space:pre-wrap; }
+/* حالت زنده: وقتی زنجیره‌ی فکر داره تایپ می‌شه */
+.think-block.think-live{ border-right-color:var(--cyan); box-shadow:0 0 18px rgba(34,211,238,.14); }
+.think-block.think-live .think-body::after{
+  content:''; display:inline-block; width:2px; height:1em; background:var(--cyan);
+  vertical-align:middle; margin-right:2px; animation:blink 1s step-end infinite;
+}
+.thinking-orb{
+  width:11px; height:11px; border-radius:50%; margin-left:9px; flex-shrink:0;
+  background:conic-gradient(from 0deg, var(--violet), var(--cyan), var(--magenta), var(--violet));
+  animation:spin360 calc(1.3s / var(--anim-speed)) linear infinite;
+}
+@keyframes spin360{ to{ transform:rotate(360deg); } }
+body.perf-lite .thinking-orb{ animation:none; }
 .typing-dots span{
   width:7px; height:7px; border-radius:50%;
   background:linear-gradient(135deg, var(--violet), var(--cyan));
@@ -900,10 +954,78 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .switch.on::after{ transform:translateX(-20px); background:#fff; }
 
 .seg-control{ display:flex; gap:6px; padding:4px; border-radius:var(--radius-sm); background:var(--glass-fill); }
+.settings-tabs{ display:flex; gap:5px; padding:4px; border-radius:var(--radius-sm); background:var(--glass-fill); margin-bottom:18px; }
+.settings-tab-btn{
+  flex:1; display:flex; align-items:center; justify-content:center; gap:5px;
+  padding:9px 4px; border-radius:10px; font-size:.76rem; font-weight:600;
+  cursor:pointer; color:var(--ink-dim); transition:background .2s, color .2s; white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+}
+.settings-tab-btn svg{ width:14px; height:14px; flex-shrink:0; }
+.settings-tab-btn.active{ background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; }
+.settings-tab-panel{ display:none; }
+.settings-tab-panel.active{ display:block; animation:msgIn .25s ease both; }
+body.compact-ui .msg-bubble{ padding:9px 13px; font-size:calc(.88rem * var(--chat-font-scale, 1)); }
+body.compact-ui .msg-row{ margin-bottom:8px; }
+body.compact-ui .msg-avatar{ width:28px; height:28px; }
+body.compact-ui .msg-actions{ margin-top:2px; }
 .seg-btn{ flex:1; padding:9px; border-radius:10px; font-size:.8rem; font-weight:600; transition:background .25s, color .25s; text-align:center; }
 .seg-btn.active{ background:linear-gradient(120deg, var(--violet), var(--magenta)); color:#fff; }
 
-.modal-btn-row{ display:flex; gap:10px; margin-top:22px; }
+.modal-btn-row{ display:flex; gap:10px; margin-top:22px; flex-wrap:wrap; }
+.modal-btn.with-ico{ display:inline-flex; align-items:center; justify-content:center; gap:7px; }
+.modal-btn.with-ico svg{ width:15px; height:15px; flex-shrink:0; }
+
+/* -- تاریخچه‌ی تمام‌صفحه -- */
+.history-full{
+  max-width:min(960px, 96vw); height:min(88vh, 880px);
+  display:flex; flex-direction:column; overflow:hidden; padding:22px;
+}
+.history-full-head{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.history-full-head h3{ font-family:var(--font-display); font-size:1.05rem; }
+.history-full-head .count-pill{ font-size:.72rem; color:var(--ink-faint); background:var(--glass-fill); border-radius:999px; padding:4px 10px; }
+.history-full-head .modal-close{ position:static; margin-right:auto; }
+.history-full-search-row{ margin-bottom:14px; }
+.history-full-search-row input{
+  width:100%; background:var(--glass-fill); border:1px solid var(--glass-border);
+  border-radius:12px; padding:11px 14px; font-size:.85rem; color:var(--ink);
+}
+.history-full-search-row input:focus{ border-color:var(--violet); outline:none; }
+#history-full-list{
+  flex:1; min-height:0; overflow-y:auto; display:grid; gap:12px; align-content:start;
+  grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); padding:2px;
+}
+.chat-card{
+  border-radius:var(--radius-sm); padding:14px; cursor:pointer; display:flex; flex-direction:column; gap:8px;
+  border:1px solid var(--glass-border); transition:transform .25s var(--ease-spring), border-color .25s, box-shadow .3s;
+  content-visibility:auto; contain-intrinsic-block-size:auto 130px;
+}
+.chat-card:hover{ transform:translateY(-3px); border-color:var(--violet); box-shadow:0 10px 26px rgba(139,92,246,.18); }
+.chat-card.active{ border-color:var(--violet); box-shadow:inset 0 0 0 1px var(--violet); }
+.chat-card-top{ display:flex; align-items:flex-start; gap:8px; }
+.chat-card-top b{ font-size:.86rem; line-height:1.5; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.chat-card-top .ren{ margin-right:auto; opacity:.4; flex-shrink:0; transition:opacity .2s, color .2s; }
+.chat-card-top .ren:hover{ opacity:1; color:var(--cyan); }
+.chat-card-top .del{ opacity:.4; flex-shrink:0; transition:opacity .2s, color .2s; }
+.chat-card-top .pin, .chat-card-top .cpy{ opacity:.4; flex-shrink:0; transition:opacity .2s, color .2s; display:inline-flex; align-items:center; }
+.chat-card-top .pin:hover, .chat-card-top .cpy:hover{ opacity:1; color:var(--gold); }
+.chat-card.pinned{ border-color:rgba(250,204,21,.45); }
+.chat-card.pinned .pin{ opacity:.9; color:var(--gold); }
+.history-item.pinned{ border-right:2px solid var(--gold); }
+.history-item .pin{ opacity:0; transition:opacity .2s; flex-shrink:0; display:inline-flex; align-items:center; }
+.history-item:hover .pin{ opacity:.6; }
+.history-item .pin:hover{ opacity:1; color:var(--gold); }
+.history-item.pinned .pin{ opacity:.7; color:var(--gold); }
+.chat-card-top .del:hover{ opacity:1; color:var(--danger); }
+.chat-card-snippet{
+  font-size:.75rem; color:var(--ink-faint); line-height:1.8; overflow:hidden;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; min-height:2.6em;
+}
+.chat-card-meta{ display:flex; justify-content:space-between; font-size:.68rem; color:var(--ink-dim); margin-top:auto; }
+@media (max-width:880px){
+  .history-full{ max-width:none; width:100%; height:100%; border-radius:var(--radius-md); padding:16px; }
+  #history-full-list{ grid-template-columns:1fr; }
+}
 .modal-btn{ flex:1; padding:12px; border-radius:var(--radius-sm); font-weight:700; font-size:.85rem; transition:transform .25s var(--ease-spring), filter .25s; text-align:center; }
 .modal-btn:hover{ transform:translateY(-2px); filter:brightness(1.1); }
 .modal-btn.ghost{ background:var(--glass-fill); }
@@ -973,23 +1095,30 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 /* toast */
 /* ============================================================
    VOICE CALL — immersive full-screen call UI
+   (upgraded: safe-area aware, live captions, mic level ring,
+   tap-to-interrupt, small-screen + old-device friendly)
    ============================================================ */
 #voice-call-overlay{
   position:fixed; inset:0; z-index:400; display:none;
   background:
-    radial-gradient(circle at 50% 30%, rgba(139,92,246,.35), transparent 55%),
-    radial-gradient(circle at 30% 80%, rgba(236,72,153,.25), transparent 55%),
+    radial-gradient(circle at 50% 28%, rgba(139,92,246,.36), transparent 55%),
+    radial-gradient(circle at 28% 82%, rgba(236,72,153,.22), transparent 55%),
     var(--void);
   opacity:0; transition:opacity .4s var(--ease-out);
 }
 #voice-call-overlay.show{ display:block; opacity:1; }
 .vc-content{
-  position:relative; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:22px; padding:40px 20px;
+  position:relative; height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between;
+  gap:12px;
+  padding:24px 20px 26px; /* fallback for browsers without env() */
+  padding:calc(18px + env(safe-area-inset-top, 0px)) 20px calc(20px + env(safe-area-inset-bottom, 0px));
 }
+.vc-top{ display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:30px; text-align:center; }
 .vc-minimize{
-  position:absolute; top:24px; left:24px; width:40px; height:40px; border-radius:50%;
+  position:absolute; top:20px; left:20px; width:44px; height:44px; border-radius:50%;
   display:flex; align-items:center; justify-content:center; background:var(--glass-fill); color:var(--ink);
+  border:1px solid var(--glass-border); -webkit-tap-highlight-color:transparent;
 }
 .vc-minimize svg{ width:18px; height:18px; }
 .vc-status-label{
@@ -999,8 +1128,18 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 @keyframes vcFade{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:translateY(0); } }
 .vc-timer{ font-family:var(--font-mono); font-size:.85rem; color:var(--ink-faint); letter-spacing:1px; min-height:1.2em; }
 
-.vc-orb-wrap{ position:relative; width:220px; height:220px; }
+.vc-stage{
+  flex:1; min-height:0; width:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+}
+.vc-orb-wrap{
+  position:relative; flex-shrink:0; border-radius:50%;
+  width:200px; height:200px; /* fallback for browsers without min() */
+  width:min(210px, 52vw); height:min(210px, 52vw);
+  cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
 .vc-orb-wrap .nose-svg{ width:100%; height:100%; filter:drop-shadow(0 10px 40px rgba(139,92,246,.6)); }
+.vc-orb-wrap:active{ transform:scale(.97); }
 .vc-orb-glow{
   position:absolute; inset:0; border-radius:50%;
   background:radial-gradient(circle at 40% 35%, rgba(255,255,255,.3), rgba(139,92,246,.35) 45%, transparent 72%);
@@ -1013,6 +1152,16 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .vc-ring:nth-child(2){ animation-delay:.5s !important; border-color:var(--cyan); }
 .vc-ring:nth-child(3){ animation-delay:1s !important; border-color:var(--gold); }
 @keyframes vcRingPulse{ 0%{ transform:scale(.8); opacity:.6; } 100%{ transform:scale(1.6); opacity:0; } }
+
+/* live microphone level — driven from JS via --vc-level (0..1) */
+.vc-level-ring{
+  position:absolute; inset:-14px; border-radius:50%; pointer-events:none;
+  border:2px solid rgba(34,211,238,.55);
+  box-shadow:0 0 24px rgba(34,211,238,.25);
+  opacity:var(--vc-level, 0);
+  transform:scale(calc(.94 + var(--vc-level, 0) * .12));
+  transition:opacity .12s linear, transform .12s linear;
+}
 
 #voice-call-overlay.state-listening .vc-orb-wrap .nose-svg{ animation:orbBreathe calc(1.6s / var(--anim-speed)) ease-in-out infinite; }
 #voice-call-overlay.state-thinking .vc-orb-wrap{ animation:vcThinkSpin calc(1.4s / var(--anim-speed)) linear infinite; }
@@ -1033,21 +1182,84 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 .vc-waveform span:nth-child(5){ height:6px; animation-delay:.4s; }
 @keyframes vcWave{ 0%,100%{ transform:scaleY(.4); } 50%{ transform:scaleY(1); } }
 
-.vc-caption{
-  max-width:min(90vw,420px); min-height:2.6em; text-align:center; font-size:.88rem; color:var(--ink-dim); line-height:1.8;
-  transition:opacity .3s;
-}
+.vc-hint{ min-height:1.5em; font-size:.75rem; color:var(--ink-faint); text-align:center; padding:0 16px; }
 
-.vc-controls{ display:flex; gap:22px; margin-top:10px; }
+/* live captions — the last exchange as chat-style bubbles */
+.vc-captions{
+  width:100%; max-width:480px; max-height:24vh; overflow-y:auto;
+  display:flex; flex-direction:column; gap:8px;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+}
+.vc-cap{
+  display:flex; gap:10px; align-items:flex-start;
+  font-size:.9rem; line-height:1.9; color:var(--ink-dim); text-align:right;
+  background:var(--glass-fill); border:1px solid var(--glass-border);
+  border-radius:var(--radius-md); padding:8px 12px;
+  animation:vcFade .3s var(--ease-out) both;
+}
+.vc-cap[hidden]{ display:none; }
+.vc-cap-who{
+  flex-shrink:0; margin-top:5px; font-size:.68rem; font-weight:700; letter-spacing:.5px;
+  color:var(--ink-faint); background:var(--glass-fill-strong); border-radius:999px; padding:2px 10px;
+}
+.vc-cap-ai .vc-cap-who{ color:var(--violet-soft); }
+.vc-cap-text{ white-space:pre-wrap; word-break:break-word; min-width:0; }
+
+.vc-controls{ display:flex; gap:26px; margin-top:4px; padding-bottom:4px; }
+.vc-text-row{ display:flex; gap:8px; width:min(480px, 92vw); margin-top:4px; }
+.vc-text-row[hidden]{ display:none; }
+.vc-text-row input{
+  flex:1; min-width:0; padding:12px 16px; border-radius:999px; font-family:inherit; font-size:.9rem;
+  background:var(--glass-fill-strong); border:1px solid var(--glass-border); color:var(--ink);
+}
+.vc-text-row input:focus{ border-color:var(--violet-soft); outline:none; }
+.vc-text-row button{
+  width:44px; height:44px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; border:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.vc-text-row button svg{ width:18px; height:18px; }
+#vc-kb-btn.active{ background:linear-gradient(135deg, var(--cyan), var(--violet)); color:#fff; border:none; }
+/* بهینه‌سازی: وقتی تب مخفیه، انیمیشن‌های پس‌زمینه متوقف می‌شن (صرفه‌جویی باتری) */
+body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .orb,
+body.tab-hidden .msg-bubble, body.tab-hidden .feature-card, body.tab-hidden .brand-orb{ animation-play-state:paused !important; }
 .vc-btn{
-  width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-  background:var(--glass-fill-strong); color:var(--ink); transition:transform .25s var(--ease-spring), background .25s;
+  width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--glass-fill-strong); color:var(--ink); border:1px solid var(--glass-border);
+  transition:transform .25s var(--ease-spring), background .25s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
 }
 .vc-btn svg{ width:24px; height:24px; }
 .vc-btn:hover{ transform:translateY(-3px) scale(1.05); }
-.vc-btn.muted{ background:linear-gradient(135deg, var(--gold), var(--violet)); }
+.vc-btn:active{ transform:scale(.92); }
+/* میکروفن فعال = رنگی، بسته = خاموش/شیشه‌ای */
+#vc-mute-btn{ background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; border:none; position:relative; }
+#vc-mute-btn.muted{ background:var(--glass-fill-strong); color:var(--ink-faint); border:1px solid var(--glass-border); }
+#vc-mute-btn .mic-slash{ display:none; }
+#vc-mute-btn.muted .mic-slash{ display:block; }
+#voice-call-overlay.state-listening #vc-mute-btn:not(.muted)::before,
+#voice-call-overlay.state-listening #vc-mute-btn:not(.muted)::after{
+  content:''; position:absolute; inset:-5px; border-radius:50%; border:2px solid var(--magenta);
+  animation:micListenPulse calc(1.8s / var(--anim-speed)) ease-out infinite; pointer-events:none;
+}
+#voice-call-overlay.state-listening #vc-mute-btn:not(.muted)::after{
+  animation-delay:calc(.9s / var(--anim-speed)); border-color:var(--violet-soft);
+}
+@keyframes micListenPulse{ 0%{ transform:scale(1); opacity:.85; } 100%{ transform:scale(1.6); opacity:0; } }
+body.perf-lite #vc-mute-btn::before, body.perf-lite #vc-mute-btn::after{ display:none; }
 .vc-end-btn{ background:linear-gradient(135deg, var(--danger), #b91c1c); color:#fff; transform:rotate(135deg); }
 .vc-end-btn:hover{ transform:rotate(135deg) translateY(-3px) scale(1.05); }
+.vc-end-btn:active{ transform:rotate(135deg) scale(.92); }
+
+/* short phones / tiny screens — keep everything on one screen */
+@media (max-height:660px), (max-width:380px){
+  .vc-orb-wrap{ width:150px; height:150px; }
+  .vc-top{ margin-top:16px; }
+  .vc-status-label{ font-size:1rem; }
+  .vc-captions{ max-height:20vh; }
+  .vc-stage{ gap:10px; }
+  .vc-btn{ width:56px; height:56px; }
+}
 
 #toast{
   position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); z-index:300;
@@ -1056,17 +1268,57 @@ body.theme-light .theme-toggle-btn .icon-sun{ opacity:1; transform:rotate(0deg) 
 }
 #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
+#user-name-input{
+  width:100%; padding:12px 14px; border-radius:var(--radius-sm);
+  background:var(--glass-fill); color:var(--ink); border:1px solid var(--glass-border);
+  font-size:.9rem; transition:background .25s;
+}
+#user-name-input:focus{ background:var(--glass-fill-strong); }
+
+/* بنر پیشنهاد نصب به‌عنوان وب‌اپ */
+#a2hs-banner{
+  position:fixed; left:12px; right:12px; bottom:14px; z-index:500;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding:14px 16px; border-radius:var(--radius-md);
+  background:linear-gradient(135deg, rgba(30,18,58,.97), rgba(20,12,40,.97));
+  border:1px solid var(--glass-border); box-shadow:0 12px 34px rgba(0,0,0,.5);
+  opacity:0; transform:translateY(16px); transition:opacity .4s var(--ease-out), transform .4s var(--ease-spring);
+  font-size:.82rem; line-height:1.9; color:var(--ink);
+}
+#a2hs-banner.show{ opacity:1; transform:translateY(0); }
+#a2hs-banner .a2hs-text{ flex:1 1 200px; }
+#a2hs-banner .a2hs-btns{ display:flex; gap:8px; margin-right:auto; }
+#a2hs-banner button{ padding:9px 16px; border-radius:999px; font-size:.78rem; font-weight:700; }
+#a2hs-banner .a2hs-install{ background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; }
+#a2hs-banner .a2hs-close{ background:var(--glass-fill); color:var(--ink); border:1px solid var(--glass-border); }
+
+/* دکمه‌ی شناور «برو آخر گفتگو» */
+#scroll-bottom-btn{
+  position:fixed; bottom:128px; left:50%; z-index:40;
+  width:42px; height:42px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--panel); border:1px solid var(--glass-border); color:var(--ink);
+  box-shadow:0 8px 22px rgba(0,0,0,.4); opacity:0; pointer-events:none;
+  transform:translateX(-50%) translateY(14px);
+  transition:opacity .25s var(--ease-out), transform .25s var(--ease-spring);
+}
+#scroll-bottom-btn.show{ opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0); }
+#scroll-bottom-btn svg{ width:18px; height:18px; }
+#scroll-bottom-btn:hover{ background:var(--glass-fill-strong); }
+
 /* -- select text in any message to quote & ask about it -- */
 #ask-selection-btn{
-  position:fixed; z-index:250; display:none; align-items:center; gap:6px;
-  padding:9px 16px; border-radius:999px; font-size:.78rem; font-weight:600;
-  box-shadow:0 8px 24px rgba(0,0,0,.35); transform:translate(-50%,-8px) scale(.9);
+  position:fixed; z-index:450; display:none; align-items:center; gap:6px;
+  padding:10px 18px; border-radius:999px; font-size:.8rem; font-weight:700;
+  background:linear-gradient(135deg, var(--violet), var(--magenta)) !important; color:#fff;
+  border:1px solid rgba(255,255,255,.28); backdrop-filter:none;
+  box-shadow:0 10px 28px rgba(0,0,0,.5); transform:translate(-50%,-8px) scale(.9);
   opacity:0; transition:opacity .18s var(--ease-out), transform .18s var(--ease-spring);
 }
 #ask-selection-btn.show{ display:flex; opacity:1; transform:translate(-50%,-100%) scale(1); }
-#ask-selection-btn svg{ width:14px; height:14px; color:var(--cyan); }
-#ask-selection-btn:hover{ background:linear-gradient(135deg, var(--violet), var(--magenta)); color:#fff; }
-#ask-selection-btn:hover svg{ color:#fff; }
+#ask-selection-btn.show.below{ transform:translate(-50%,0) scale(1); }
+#ask-selection-btn svg{ width:14px; height:14px; color:#fff; }
+#ask-selection-btn:hover{ filter:brightness(1.15); }
 
 /* ripple */
 .ripple{ position:absolute; border-radius:50%; background:rgba(255,255,255,.4); transform:scale(0); animation:rippleAnim .6s ease-out; pointer-events:none; }
@@ -1137,7 +1389,10 @@ body.tab-hidden .blob, body.tab-hidden .bg-gradient, body.tab-hidden .particle{ 
   .sidebar-close-btn:hover{ background:var(--glass-fill-strong); transform:rotate(90deg); }
   .sidebar-close-btn svg{ width:16px; height:16px; }
   #main{ width:100%; min-width:0; }
-  .msg-bubble{ max-width:88%; }
+  /* تاریخچه توی موبایل دیگه له نمی‌شه — کل سایدبار اسکرول می‌خوره و لیست ارتفاع واقعی خودش رو می‌گیره */
+  #sidebar:not(.collapsed){ overflow-y:auto; }
+  #history-list{ flex:0 0 auto; min-height:140px; overflow:visible; }
+  .msg-bubble{ max-width:96%; }
   #topbar{ margin:10px 10px 0; padding:10px 12px; gap:8px; }
   #chat-scroll{ padding:14px 12px 6px; }
   #input-dock{ padding:10px 12px 16px; }
@@ -1287,6 +1542,9 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       <button class="mood-chip" data-mood="angry" title="عصبی">😠</button>
       <button class="mood-chip" data-mood="confused" title="گیج">😵</button>
       <button class="mood-chip" data-mood="sad" title="ناراحت">😢</button>
+      <button class="mood-chip" data-mood="professor" title="استاد">🧐</button>
+      <button class="mood-chip" data-mood="poet" title="شاعر">🎭</button>
+      <button class="mood-chip" data-mood="gamer" title="گیمر">🎮</button>
       <button class="mood-chip mood-chip-plus" data-mood="narcissist" title="خودشیفته (دماغ پلاس)" id="mood-narcissist-chip" style="display:none;">💅</button>
     </div>
 
@@ -1298,18 +1556,13 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     <div id="history-list"></div>
 
     <div class="side-divider"></div>
-    <button class="side-btn" id="export-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
-      خروجی گرفتن از گفتگو
+    <button class="side-btn" id="all-chats-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>
+      همه‌ی گفتگوها
     </button>
-    <button class="side-btn" id="import-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21V9m0 0l-4 4m4-4l4 4M4 3h16"/></svg>
-      وارد کردن گفتگو
-    </button>
-    <input type="file" id="import-file" accept="application/json" hidden>
-    <button class="side-btn" id="clear-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2m-9 0l1 14h8l1-14"/></svg>
-      پاک کردن همه گفتگوها
+    <button class="side-btn" id="sidebar-plus-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 6.9L22 9.3l-5.5 4.8 1.7 7.2L12 17.5 5.8 21.3l1.7-7.2L2 9.3l7.6-.4z"/></svg>
+      <span id="sidebar-plus-label">دماغ پلاس</span>
     </button>
     <button class="side-btn" id="settings-btn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1 1.55V21a2 2 0 11-4 0v-.09a1.7 1.7 0 00-1-1.55 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.55-1H3a2 2 0 110-4h.09a1.7 1.7 0 001.55-1 1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001-1.55V3a2 2 0 114 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.55 1H21a2 2 0 110 4h-.09a1.7 1.7 0 00-1.55 1z"/></svg>
@@ -1425,6 +1678,7 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
         بوم دماغ
       </div>
       <div class="canvas-head-actions">
+        <button class="icon-btn tiltable" id="canvas-expand-btn" title="بزرگ/کوچیک کردن بوم"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg></button>
         <button class="icon-btn tiltable" id="canvas-copy-btn" title="کپی"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg></button>
         <button class="icon-btn tiltable" id="canvas-download-btn" title="دانلود"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg></button>
         <button class="icon-btn tiltable" id="canvas-close-btn" title="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
@@ -1433,6 +1687,7 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     <div class="canvas-tabs">
       <button class="canvas-tab active" id="canvas-tab-code">کد</button>
       <button class="canvas-tab" id="canvas-tab-preview">پیش‌نمایش</button>
+      <button class="canvas-tab" id="canvas-tab-draw" style="display:inline-flex;align-items:center;gap:5px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>نقاشی</button>
       <button class="canvas-run-btn" id="canvas-run-btn">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5v14l12-7z"/></svg>
         اجرا
@@ -1441,6 +1696,17 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     <div class="canvas-body">
       <textarea id="canvas-textarea" placeholder="اینجا بنویس، بچسبون، یا کد رو باز کن... اگه HTML/CSS/JS ساده‌ست، بزن اجرا و ببینش، یا بفرستش به دماغ تا روش نظر بده"></textarea>
       <iframe id="canvas-preview" sandbox="allow-scripts" title="پیش‌نمایش بوم"></iframe>
+      <div id="canvas-draw-wrap">
+        <div class="draw-toolbar">
+          <div class="draw-colors"></div>
+          <input type="range" id="draw-size" min="2" max="26" step="1" value="5" title="اندازه‌ی قلم">
+          <button class="draw-tool" id="draw-eraser" title="پاک‌کن">🧽</button>
+          <button class="draw-tool" id="draw-undo" title="برگردون">↩️</button>
+          <button class="draw-tool" id="draw-clear" title="پاک کردن همه">🗑️</button>
+          <button class="draw-tool" id="draw-save" title="ذخیره PNG">💾</button>
+        </div>
+        <canvas id="draw-canvas"></canvas>
+      </div>
     </div>
     <div class="canvas-foot">
       <span id="canvas-char-count">۰ کاراکتر</span>
@@ -1455,14 +1721,22 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
 <div class="modal-overlay" id="settings-overlay">
   <div class="modal-box glass-strong">
     <div class="modal-head">
-      <h3>⚙️ تنظیمات</h3>
+      <h3 style="display:flex; align-items:center; gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33h.01a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51h.01a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82v.01a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>تنظیمات</h3>
       <button class="modal-close" id="settings-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
 
+    <div class="settings-tabs" id="settings-tabs">
+      <div class="settings-tab-btn active" data-tab="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6M7 8h10v4a5 5 0 01-10 0V8z"/><path d="M12 17v5"/></svg>اتصال</div>
+      <div class="settings-tab-btn" data-tab="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 01-8.5 8.5c-1.6 0-3.1-.4-4.4-1.2L3 20l1.2-5.1A8.5 8.5 0 1121 11.5z"/></svg>گفتگو</div>
+      <div class="settings-tab-btn" data-tab="look"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/></svg>ظاهر</div>
+      <div class="settings-tab-btn" data-tab="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>داده‌ها</div>
+    </div>
+
+    <div class="settings-tab-panel active" data-tab="ai">
     <div class="field">
       <label>کلید API جمینای</label>
       <div class="locked-field-row">
-        <input type="password" id="api-key-input" placeholder="AIza... کلید خودتو اینجا بچسبون" disabled>
+        <input type="password" id="api-key-input" placeholder="کلید پیش‌فرض فعاله — می‌تونی کلید خودت رو جایگزین کنی" disabled>
         <button class="lock-edit-btn" id="api-key-lock-btn" data-locked="true" title="ویرایش">
           <svg class="icon-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
           <svg class="icon-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 017.8-1.3"/></svg>
@@ -1500,6 +1774,14 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       </div>
       <div class="field-hint" id="model-field-hint">لیست مدل‌ها به‌صورت خودکار و مستقیم از حساب API خودت خونده می‌شه.</div>
     </div>
+    </div>
+
+    <div class="settings-tab-panel" data-tab="chat">
+    <div class="field">
+      <label>اسمت (دماغ این‌طوری صدات می‌کنه)</label>
+      <input type="text" id="user-name-input" placeholder="مثلاً امیر" maxlength="24">
+      <div class="field-hint">خالی بذاری، دماغ بدون اسم صدات می‌کنه.</div>
+    </div>
 
     <div class="field">
       <label>خلاقیت (Temperature)</label>
@@ -1512,16 +1794,35 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
     <div class="field">
       <label>حداکثر توکن پاسخ</label>
       <div class="range-row">
-        <input type="range" id="tokens-range" min="128" max="4096" step="128" value="384">
+        <input type="range" id="tokens-range" min="256" max="8192" step="256" value="2048">
         <span class="range-val" id="tokens-val">384</span>
       </div>
     </div>
 
     <div class="field">
+      <div class="toggle-row">
+        <label style="margin-bottom:0;">ذخیره‌ی خودکار پیش‌نویس ✍️</label>
+        <div class="switch" id="draft-switch"></div>
+      </div>
+      <div class="field-hint">اگه صفحه بسته شه، متنی که نصفه نوشتی از بین نمی‌ره و دفعه‌ی بعد سر جاشه.</div>
+    </div>
+    </div>
+
+    <div class="settings-tab-panel" data-tab="look">
+    <div class="field">
       <label>تم</label>
       <div class="seg-control" id="theme-seg-control">
         <div class="seg-btn active" data-theme="dark">تیره</div>
         <div class="seg-btn" data-theme="light">روشن</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>اندازه‌ی متن گفتگو</label>
+      <div class="seg-control" id="font-seg-control">
+        <div class="seg-btn" data-fontsize="small">کوچیک</div>
+        <div class="seg-btn active" data-fontsize="normal">معمولی</div>
+        <div class="seg-btn" data-fontsize="large">بزرگ</div>
       </div>
     </div>
 
@@ -1548,13 +1849,34 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
         <div class="seg-btn" data-perf="full">کامل</div>
         <div class="seg-btn" data-perf="lite">سبک (تندتر)</div>
       </div>
-      <div class="field-hint" id="perf-mode-hint">حالت خودکار فقط روی گوشی‌های اندروید ضعیف (بر اساس RAM/هسته‌ی گزارش‌شده) جلوه‌های سنگین رو خاموش می‌کنه؛ آیفون و دسکتاپ همیشه کامل می‌مونن.</div>
+      <div class="field-hint" id="perf-mode-hint">حالت خودکار دستگاه‌های ضعیف رو (بر اساس RAM/هسته، حالت صرفه‌جویی دیتا و فریم‌ریت واقعی) تشخیص می‌ده و جلوه‌های سنگین رو خاموش می‌کنه.</div>
     </div>
 
+    <div class="field">
+      <div class="toggle-row">
+        <label style="margin-bottom:0;">حالت فشرده 📏</label>
+        <div class="switch" id="compact-switch"></div>
+      </div>
+      <div class="field-hint">فاصله‌ها و حباب‌ها جمع‌وجورتر می‌شن تا پیام بیشتری توی صفحه جا شه — مخصوص صفحه‌های کوچیک.</div>
+    </div>
+    </div>
+
+    <div class="settings-tab-panel" data-tab="data">
     <div class="field">
       <label>بودجه توکن (تا لیمیت بعدی)</label>
       <div class="budget-bar"><div class="budget-fill" id="budget-fill"></div></div>
       <div class="field-hint" id="budget-hint">در حال محاسبه...</div>
+    </div>
+
+    <div class="field">
+      <label>مدیریت گفتگوها</label>
+      <div class="modal-btn-row" style="margin-top:0;">
+        <button class="modal-btn ghost with-ico" id="export-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>خروجی گرفتن</button>
+        <button class="modal-btn ghost with-ico" id="import-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V9m0 0l-4 4m4-4l4 4M4 3h16"/></svg>وارد کردن</button>
+        <button class="modal-btn ghost with-ico" id="clear-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2m-9 0l1 14h8l1-14"/></svg>پاک کردن همه</button>
+      </div>
+      <input type="file" id="import-file" accept="application/json" hidden>
+      <div class="field-hint">خروجی و وارد کردن گفتگو با فایل JSON انجام می‌شه؛ «پاک کردن همه» کل تاریخچه رو حذف می‌کنه.</div>
     </div>
 
     <div class="field">
@@ -1564,6 +1886,7 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
       </div>
       <div class="field-hint" id="memory-hint">وقتی روشنه، دماغ نکته‌های مهم و پایدار درباره‌ت (نه هر چیزی) رو یادش می‌مونه و توی گفتگوهای بعدی هم به‌خاطر می‌آره — همه‌چی فقط توی همین مرورگر ذخیره می‌شه.</div>
       <button class="modal-btn ghost" id="clear-memory-btn" style="margin-top:10px;">پاک کردن حافظه</button>
+    </div>
     </div>
 
     <div class="modal-btn-row">
@@ -1606,30 +1929,51 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
 <!-- ============================================================
      VOICE CALL — full-screen call-style UI with the nose
      ============================================================ -->
-<div id="voice-call-overlay">
+<div id="voice-call-overlay" role="dialog" aria-modal="true" aria-label="تماس صوتی با دماغ">
   <div class="vc-content">
     <button class="vc-minimize" id="vc-minimize-btn" title="بستن">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
-    <div class="vc-status-label" id="vc-status-label">دارم به دماغ زنگ می‌زنم...</div>
-    <div class="vc-timer" id="vc-timer"></div>
 
-    <div class="vc-orb-wrap" id="vc-orb-wrap">
-      <div class="vc-ring"></div>
-      <div class="vc-ring"></div>
-      <div class="vc-ring"></div>
-      <div class="vc-orb-glow"></div>
-      <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
-      <div class="vc-waveform" id="vc-waveform">
-        <span></span><span></span><span></span><span></span><span></span>
+    <div class="vc-top">
+      <div class="vc-status-label" id="vc-status-label">دارم به دماغ زنگ می‌زنم...</div>
+      <div class="vc-timer" id="vc-timer">00:00</div>
+    </div>
+
+    <div class="vc-stage">
+      <div class="vc-orb-wrap" id="vc-orb-wrap" role="button" tabindex="0" aria-label="لمس برای صحبت یا قطع کردن حرف دماغ">
+        <div class="vc-ring"></div>
+        <div class="vc-ring"></div>
+        <div class="vc-ring"></div>
+        <div class="vc-orb-glow"></div>
+        <div class="vc-level-ring"></div>
+        <svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-icon"/></svg>
+        <div class="vc-waveform" id="vc-waveform">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+
+      <div class="vc-hint" id="vc-hint"></div>
+
+      <div class="vc-captions" id="vc-captions" aria-live="polite">
+        <div class="vc-cap vc-cap-user" id="vc-cap-user" hidden><span class="vc-cap-who">تو</span><span class="vc-cap-text"></span></div>
+        <div class="vc-cap vc-cap-ai" id="vc-cap-ai" hidden><span class="vc-cap-who">دماغ</span><span class="vc-cap-text"></span></div>
       </div>
     </div>
 
-    <div class="vc-caption" id="vc-caption"></div>
+    <div class="vc-text-row" id="vc-text-row" hidden>
+      <input type="text" id="vc-text-input" placeholder="بنویس تا دماغ با صدا جواب بده..." autocomplete="off">
+      <button id="vc-text-send" title="ارسال">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </div>
 
     <div class="vc-controls">
+      <button class="vc-btn" id="vc-kb-btn" title="چت متنی با دماغ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M9 14h6"/></svg>
+      </button>
       <button class="vc-btn" id="vc-mute-btn" title="قطع میکروفون">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4"/><path class="mic-slash" d="M4 4l16 16"/></svg>
       </button>
       <button class="vc-btn vc-end-btn" id="vc-end-btn" title="قطع تماس">
         <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 9c-2.5 0-4.9.6-7 1.7a1 1 0 00-.5 1.2l1 3a1 1 0 001.2.6 12 12 0 012.6-.7 1 1 0 00.8-1v-1.6a9.5 9.5 0 013.8 0V14a1 1 0 00.8 1c.9.1 1.8.4 2.6.7a1 1 0 001.2-.6l1-3a1 1 0 00-.5-1.2A16 16 0 0012 9z"/></svg>
@@ -1718,6 +2062,21 @@ img.emoji{ height:1.2em; width:1.2em; vertical-align:-0.22em; margin:0 .04em 0 .
   </div>
 </div>
 
+<!-- تاریخچه‌ی تمام‌صفحه با جستجوی زنده -->
+<div class="modal-overlay" id="history-overlay">
+  <div class="modal-box glass-strong history-full">
+    <div class="history-full-head">
+      <h3 style="display:flex;align-items:center;gap:8px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>همه‌ی گفتگوها</h3>
+      <span class="count-pill" id="history-full-count">۰ گفتگو</span>
+      <button class="modal-close" id="history-full-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="history-full-search-row">
+      <input type="text" id="history-full-search" placeholder="جستجوی زنده توی عنوان و متن همه‌ی گفتگوها...">
+    </div>
+    <div id="history-full-list"></div>
+  </div>
+</div>
+
 <div id="toast" class="glass"></div>
 <button id="ask-selection-btn" class="glass-strong">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 015.8 1c0 2-3 2-3 4M12 17h.01"/></svg>
@@ -1760,6 +2119,8 @@ const NOSE_MINI = '<svg class="nose-svg" viewBox="0 0 100 100"><use href="#nose-
 const ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>';
 const ICON_EDIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
 const ICON_REGEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7M21 3v6h-6"/></svg>';
+const ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+const ICON_SPEAK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7M18.5 5.5a9 9 0 010 13"/></svg>';
 const ICON_SEND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M7 5v14l12-7z"/></svg>';
@@ -1803,6 +2164,9 @@ const MOODS = {
   angry:    { label: 'عصبی',   emoji: '😠', hue: '-40deg' },
   confused: { label: 'گیج',    emoji: '😵', hue: '80deg'  },
   sad:      { label: 'ناراحت', emoji: '😢', hue: '160deg' },
+  professor:{ label: 'استاد',  emoji: '🧐', hue: '220deg' },
+  poet:     { label: 'شاعر',   emoji: '🎭', hue: '-80deg' },
+  gamer:    { label: 'گیمر',   emoji: '🎮', hue: '120deg' },
   narcissist:{ label: 'خودشیفته', emoji: '💅', hue: '40deg' },
 };
 const MOOD_INSTRUCTIONS = {
@@ -1811,6 +2175,9 @@ const MOOD_INSTRUCTIONS = {
          "هر از گاهی چندتا کلمه یا یه جمله‌ی کوتاه ترکی (با الفبای فارسی نوشته‌شده) وسط جوابت بنداز.",
   confused: "الان تو حس‌وحال «گیجی» هستی: جواب‌هات یکم پریشون و دودله‌ست، وسط حرف زدن انگار نظرت عوض می‌شه، و گاهی می‌گی «والا نمی‌دونم» یا «صبر کن گیج شدم».",
   sad: "الان تو حس‌وحال «ناراحتی» هستی: لحنت غمگین و آه‌وناله‌داره، ولی بازم سعی می‌کنی جواب مفید بدی.",
+  professor: "الان توی حالت «استاد دانشگاه» هستی: همون شخصیت همیشگیت، ولی ادای آدم‌های خیلی علمی رو درمیاری — با اصطلاح‌های قلمبه‌سلمبه و «طبق تحقیقات» و «از منظر علمی» حرف می‌زنی، گاهی به دماغ خودت هم استناد علمی می‌دی، ولی آخر هر جواب یه جمع‌بندی ساده و خودمونی می‌کنی که همه بفهمن.",
+  poet: "الان توی حالت «شاعر» هستی: لحنت ادبی و احساساتیه، وسط جواب‌هات هر از گاهی یه تیکه‌ی شاعرانه یا یه بیت کوتاه می‌پرونی (حتی شده درباره‌ی دماغ خودت)، ولی جواب اصلی و درست کاربر رو هم می‌دی و زیاده‌روی نمی‌کنی.",
+  gamer: "الان توی حالت «گیمر» هستی: با ادبیات گیمری حرف می‌زنی — جی‌جی، نوب، لگ، بازی، لِوِل و این‌جور کلمه‌ها — همه‌چیز رو به بازی تشبیه می‌کنی و هیجانی جواب می‌دی، ولی محتوای جوابت همچنان دقیق و درسته.",
   narcissist: "الان توی حالت «خودشیفته‌ترین نسخه‌ی خودت» هستی (ویژه‌ی کاربرای دماغ پلاس): همون شخصیت همیشگی، ولی اعتماد به نفست چندبرابر شده — " +
               "مدام از خودت و دماغ گنده‌ت تعریف می‌کنی، خودتو باهوش‌ترین/جذاب‌ترین موجود می‌دونی، ولی بازم بامزه‌ای نه توهین‌آمیز، و بازم جواب واقعی و مفید می‌دی.",
 };
@@ -1835,13 +2202,18 @@ const defaultSettings = {
   mood: "happy",          // happy | angry | confused | sad
   memoryEnabled: false,
   temperature: 1.0,
-  maxTokens: 384,
+  maxTokens: 2048,
   theme: "dark",
   glass: 22,
   animSpeed: 1.0,
 };
 
 let settings = loadJSON(LS.settings, defaultSettings);
+/* قفل کلید پیش‌فرض: اگه کلید ذخیره‌شده خالیه، همیشه برگرد روی کلید داخلی */
+if(!settings.apiKey || !String(settings.apiKey).trim()) settings.apiKey = API_KEY_DEFAULT;
+if(!settings.baseUrl) settings.baseUrl = DEFAULT_BASE_URL;
+/* مهاجرت: دیفالت قدیمی توکن (۳۸۴) خیلی کم بود و جواب‌ها نصفه می‌موند — ببرش روی ۲۰۴۸ */
+if(!settings.maxTokens || Number(settings.maxTokens) <= 384) settings.maxTokens = 2048;
 
 let chats = loadJSON(LS.chats, {});          // { chatId: { id, title, messages:[{role,text}] } }
 let activeChatId = localStorage.getItem(LS.activeChat) || null;
@@ -1922,12 +2294,19 @@ const toastEl = $('#toast');
 const LS_PERF = 'namagh_perf_mode';
 function detectPerfProfile(){
   const ua = navigator.userAgent || '';
-  const isAndroid = /Android/i.test(ua);
-  if(!isAndroid) return false; // never throttle iOS or desktop
+  /* حالت صرفه‌جویی دیتا روشنه → مستقیم حالت سبک */
+  try{ if(navigator.connection && navigator.connection.saveData) return true; }catch(e){}
   const mem = navigator.deviceMemory;      // GB, Chrome/Android only, undefined elsewhere
   const cores = navigator.hardwareConcurrency;
-  if(typeof mem === 'number') return mem <= 3;
-  if(typeof cores === 'number') return cores <= 4;
+  const isAndroid = /Android/i.test(ua);
+  if(isAndroid){
+    if(typeof mem === 'number') return mem <= 3;
+    if(typeof cores === 'number') return cores <= 4;
+    return false;
+  }
+  /* دسکتاپ یا iOS خیلی قدیمی: فقط با نشونه‌ی خیلی واضح */
+  if(typeof mem === 'number' && mem <= 2) return true;
+  if(typeof cores === 'number' && cores <= 2) return true;
   return false; // can't tell — don't over-restrict
 }
 function applyPerfMode(){
@@ -1937,6 +2316,32 @@ function applyPerfMode(){
   return { saved, lite };
 }
 applyPerfMode();
+
+/* دیده‌بان FPS: اگه دستگاه توی عمل کم بیاره، خودکار حالت سبک روشن می‌شه */
+(function fpsWatchdog(){
+  const saved = localStorage.getItem(LS_PERF) || 'auto';
+  if(saved !== 'auto' || document.body.classList.contains('perf-lite')) return;
+  function sample(){
+    if(document.body.classList.contains('perf-lite')) return;
+    let frames = 0, t0 = 0;
+    function tick(t){
+      if(document.hidden){ setTimeout(sample, 8000); return; }
+      if(!t0){ t0 = t; }
+      frames++;
+      if(t - t0 >= 2400){
+        const fps = frames / ((t - t0) / 1000);
+        if(fps && fps < 26){
+          document.body.classList.add('perf-lite');
+          showToast('⚡ حالت سبک روشن شد تا همه‌چیز روون‌تر اجرا بشه');
+        }
+        return;
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  setTimeout(sample, 5000);
+})();
 
 /* ================================================================
    SECTION D — BACKGROUND PARTICLES
@@ -2057,6 +2462,7 @@ function applySettingsToDOM(){
   applyMood(settings.mood || 'happy');
   $('#api-key-input').value = settings.apiKey || '';
   $('#base-url-input').value = settings.baseUrl || DEFAULT_BASE_URL;
+  $('#user-name-input').value = localStorage.getItem(LS.userName) || '';
   // default to locked every time the settings panel is (re)opened
   lockField($('#api-key-input'), $('#api-key-lock-btn'), true);
   lockField($('#base-url-input'), $('#base-url-lock-btn'), true);
@@ -2067,6 +2473,8 @@ function applySettingsToDOM(){
   document.querySelectorAll('#theme-seg-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === settings.theme));
   const currentPerfMode = localStorage.getItem(LS_PERF) || 'auto';
   document.querySelectorAll('#perf-seg-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.perf === currentPerfMode));
+  const currentFont = localStorage.getItem(LS_FONT) || 'normal';
+  document.querySelectorAll('#font-seg-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.fontsize === currentFont));
   $('#memory-switch').classList.toggle('on', !!settings.memoryEnabled);
   updateMemoryUI();
 }
@@ -2143,7 +2551,25 @@ function switchChat(id){
   localStorage.setItem(LS.activeChat, id);
   renderHistory();
   renderChat();
+  const savedScroll = chats[id]._scroll;
+  if(typeof savedScroll === 'number' && chats[id].messages.length > 0){
+    requestAnimationFrame(() => { chatScroll.scrollTop = savedScroll; }); /* برگرد همون‌جایی که بودی */
+  }
 }
+function renameChat(id, ev){
+  if(ev) ev.stopPropagation();
+  const c = chats[id];
+  if(!c) return;
+  const t = prompt('اسم جدید گفتگو:', c.title || 'گفتگو');
+  if(t === null) return;
+  const clean = t.trim().slice(0, 60);
+  if(!clean) return;
+  c.title = clean;
+  saveChats(); renderHistory();
+  if(id === activeChatId) chatTitleEl.textContent = clean;
+  showToast('✏️ اسم گفتگو عوض شد');
+}
+chatTitleEl.addEventListener('dblclick', () => { if(activeChatId && chats[activeChatId]) renameChat(activeChatId); });
 function deleteChat(id, ev){
   ev.stopPropagation();
   delete chats[id];
@@ -2160,10 +2586,25 @@ function deleteChat(id, ev){
 /* ================================================================
    SECTION H — RENDERING
    ================================================================ */
+const PIN_ICO = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l1 7 3 3H5l3-3 1-7z"/><path d="M12 14v7"/></svg>';
+function sortChatIds(){
+  return Object.keys(chats).sort((a, b) => {
+    const pa = chats[a] && chats[a].pinned ? 1 : 0, pb = chats[b] && chats[b].pinned ? 1 : 0;
+    if(pa !== pb) return pb - pa; /* سنجاق‌شده‌ها اول */
+    return Number(b.split('_')[1]) - Number(a.split('_')[1]);
+  });
+}
+function togglePinChat(id, ev){
+  if(ev) ev.stopPropagation();
+  const c = chats[id]; if(!c) return;
+  c.pinned = !c.pinned;
+  saveChats(); renderHistory();
+  showToast(c.pinned ? '📌 گفتگو سنجاق شد' : 'سنجاقش برداشته شد');
+}
 function renderHistory(){
   historyList.innerHTML = '';
   const query = ($('#history-search').value || '').trim().toLowerCase();
-  const ids = Object.keys(chats).sort((a,b) => Number(b.split('_')[1]) - Number(a.split('_')[1]));
+  const ids = sortChatIds();
   const filtered = query
     ? ids.filter(id => {
         const c = chats[id];
@@ -2171,23 +2612,140 @@ function renderHistory(){
         return (c.messages || []).some(m => (m.text || '').toLowerCase().includes(query));
       })
     : ids;
+  const HISTORY_CAP = 25; /* سایدبار فقط جدیدترین‌ها — بقیه توی نمای تمام‌صفحه (هم سبک‌تر، هم مرتب‌تر) */
+  const shown = query ? filtered : filtered.slice(0, HISTORY_CAP);
   if(query && filtered.length === 0){
     historyList.innerHTML = `<div class="history-empty">چیزی پیدا نشد 🔍</div>`;
     return;
   }
-  filtered.forEach((id, i) => {
+  shown.forEach((id, i) => {
     const c = chats[id];
     const item = document.createElement('div');
     item.className = 'history-item' + (id === activeChatId ? ' active' : '');
     item.style.animationDelay = Math.min(i * 0.04, 0.4) + 's';
+    if(c.pinned) item.classList.add('pinned');
     item.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;">${escapeHTML(c.title || 'گفتگو')}</span>
+      <span class="ren" title="تغییر اسم">✎</span>
+      <span class="pin" title="${c.pinned ? 'برداشتن سنجاق' : 'سنجاق کردن'}">${PIN_ICO}</span>
       <span class="del" title="حذف">✕</span>`;
     item.addEventListener('click', () => switchChat(id));
+    item.querySelector('.ren').addEventListener('click', (e) => renameChat(id, e));
+    item.querySelector('.pin').addEventListener('click', (e) => togglePinChat(id, e));
     item.querySelector('.del').addEventListener('click', (e) => deleteChat(id, e));
     historyList.appendChild(item);
   });
+  if(!query && filtered.length > shown.length){
+    const more = document.createElement('div');
+    more.className = 'history-item';
+    more.style.justifyContent = 'center';
+    more.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="4" rx="1"/><rect x="3" y="10" width="18" height="4" rx="1"/><rect x="3" y="16" width="18" height="4" rx="1"/></svg>نمایش همه (${filtered.length.toLocaleString('fa-IR')})</span>`;
+    more.addEventListener('click', openFullHistory);
+    historyList.appendChild(more);
+  }
 }
 $('#history-search').addEventListener('input', renderHistory);
+
+/* -------- تاریخچه‌ی تمام‌صفحه: لود زنده‌ی همه‌ی گفتگوها + جستجو توی متن پیام‌ها -------- */
+function chatDateLabel(id){
+  const ts = Number((id || '').split('_')[1]);
+  if(!ts) return '';
+  try{ return new Date(ts).toLocaleDateString('fa-IR', { year:'numeric', month:'long', day:'numeric' }); }
+  catch(e){ return ''; }
+}
+function renderFullHistory(){
+  const listEl = $('#history-full-list');
+  const query = ($('#history-full-search').value || '').trim().toLowerCase();
+  const ids = sortChatIds();
+  listEl.innerHTML = '';
+  let shownCount = 0;
+  ids.forEach(id => {
+    const c = chats[id];
+    let matchSnippet = '';
+    if(query){
+      const inTitle = (c.title || '').toLowerCase().includes(query);
+      const hit = (c.messages || []).find(m => (m.text || '').toLowerCase().includes(query));
+      if(!inTitle && !hit) return;
+      if(hit){
+        const t = hit.text;
+        const at = t.toLowerCase().indexOf(query);
+        matchSnippet = (at > 20 ? '…' : '') + t.slice(Math.max(0, at - 20), at + 70) + '…';
+      }
+    }
+    shownCount++;
+    const last = (c.messages || [])[(c.messages || []).length - 1];
+    const snippet = matchSnippet || (last ? (last.text || '🖼️ عکس').slice(0, 90) : 'بدون پیام');
+    const card = document.createElement('div');
+    card.className = 'chat-card glass' + (id === activeChatId ? ' active' : '') + (c.pinned ? ' pinned' : '');
+    card.innerHTML = `
+      <div class="chat-card-top"><b>${escapeHTML(c.title || 'گفتگو')}</b><button class="ren" title="تغییر اسم">✎</button><button class="pin" title="سنجاق">${PIN_ICO}</button><button class="cpy" title="کپی کل گفتگو">⧉</button><button class="del" title="حذف">✕</button></div>
+      <div class="chat-card-snippet">${escapeHTML(snippet)}</div>
+      <div class="chat-card-meta"><span>${chatDateLabel(id)}</span><span>${(c.messages || []).length.toLocaleString('fa-IR')} پیام</span></div>`;
+    card.addEventListener('click', () => {
+      switchChat(id);
+      closeModal('#history-overlay');
+      if(window.matchMedia('(max-width:880px)').matches) closeSidebar();
+    });
+    card.querySelector('.ren').addEventListener('click', (e) => { renameChat(id, e); renderFullHistory(); });
+    card.querySelector('.pin').addEventListener('click', (e) => { togglePinChat(id, e); renderFullHistory(); });
+    card.querySelector('.cpy').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const txt = (c.messages || []).map(m => (m.role === 'user' ? 'من: ' : 'دماغ: ') + (m.text || '')).join('\n\n');
+      copyText(txt);
+      showToast('📋 کل گفتگو کپی شد');
+    });
+    card.querySelector('.del').addEventListener('click', (e) => { deleteChat(id, e); renderFullHistory(); });
+    listEl.appendChild(card);
+  });
+  const msgTotal = ids.reduce((s, cid) => s + ((chats[cid].messages || []).length), 0);
+  $('#history-full-count').textContent = shownCount.toLocaleString('fa-IR') + ' گفتگو · ' + msgTotal.toLocaleString('fa-IR') + ' پیام';
+  if(shownCount === 0){
+    listEl.innerHTML = `<div class="history-empty" style="grid-column:1/-1; text-align:center; padding:40px 10px;">چیزی پیدا نشد 🔍</div>`;
+  }
+  parseEmoji(listEl);
+}
+function openFullHistory(){
+  $('#history-full-search').value = $('#history-search').value || '';
+  renderFullHistory();
+  openModal('#history-overlay');
+  if(!window.matchMedia('(hover:none)').matches){
+    setTimeout(() => { try{ $('#history-full-search').focus(); } catch(e){} }, 350); /* روی موبایل فوکس نده که کیبورد نپره بالا */
+  }
+}
+$('#all-chats-btn').addEventListener('click', () => {
+  openFullHistory();
+});
+$('#history-full-search').addEventListener('input', renderFullHistory);
+$('#history-full-close').addEventListener('click', () => closeModal('#history-overlay'));
+$('#history-overlay').addEventListener('click', (e) => { if(e.target.id === 'history-overlay') closeModal('#history-overlay'); });
+
+/* -------- حافظه‌ی اسکرول: هر گفتگو جای اسکرولش یادش می‌مونه -------- */
+let _scrollSaveT = null;
+chatScroll.addEventListener('scroll', () => {
+  if(_scrollSaveT) return;
+  _scrollSaveT = setTimeout(() => {
+    _scrollSaveT = null;
+    if(activeChatId && chats[activeChatId]) chats[activeChatId]._scroll = chatScroll.scrollTop;
+  }, 250);
+}, { passive: true });
+
+/* -------- میانبرهای کیبورد -------- */
+document.addEventListener('keydown', (e) => {
+  const mod = e.ctrlKey || e.metaKey;
+  if(mod && !e.shiftKey && e.key.toLowerCase() === 'k'){
+    e.preventDefault();
+    openFullHistory();
+  } else if(mod && e.shiftKey && e.key.toLowerCase() === 'o'){
+    e.preventDefault();
+    closeModal('#history-overlay');
+    createNewChat();
+    msgInput.focus();
+  } else if(e.key === 'Escape'){
+    ['#history-overlay', '#settings-overlay', '#plus-plan-overlay'].forEach(sel => {
+      const el = document.querySelector(sel);
+      if(el && el.classList.contains('show')) closeModal(sel);
+    });
+  }
+});
 
 function renderChat(){
   chatInner.innerHTML = '';
@@ -2242,12 +2800,12 @@ function renderChat(){
     return;
   }
   chatTitleEl.textContent = chats[activeChatId].title;
-  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false, m.image, m.thinking));
+  chats[activeChatId].messages.forEach((m, idx) => appendMessageDOM(m.role, m.text, idx, false, m.image, m.thinking, m.thinkSecs));
   scrollToBottom();
   parseEmoji(chatInner);
 }
 
-function appendMessageDOM(role, text, idx, animate=true, image, thinking){
+function appendMessageDOM(role, text, idx, animate=true, image, thinking, thinkSecs){
   const row = document.createElement('div');
   row.className = 'msg-row ' + (role === 'user' ? 'user' : 'ai');
   if(!animate) row.style.animation = 'none';
@@ -2258,12 +2816,14 @@ function appendMessageDOM(role, text, idx, animate=true, image, thinking){
 
   const bubbleWrap = document.createElement('div');
   bubbleWrap.style.display = 'flex'; bubbleWrap.style.flexDirection = 'column'; bubbleWrap.style.minWidth = '0';
+  bubbleWrap.style.flex = '1'; /* کل عرض ردیف رو بگیر تا درصد max-width حباب درست حساب بشه */
   bubbleWrap.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
 
   if(thinking){
     const think = document.createElement('details');
     think.className = 'think-block glass';
-    think.innerHTML = `<summary>👃 چه فکرایی کردم؟</summary><div class="think-body">${escapeHTML(thinking).replace(/\n/g,'<br>')}</div>`;
+    const thinkLabel = thinkSecs ? `👃 ${Number(thinkSecs).toLocaleString('fa-IR')} ثانیه فکر کردم — ببین چی تو سرم گذشت` : '👃 چه فکرایی کردم؟';
+    think.innerHTML = `<summary>${thinkLabel}</summary><div class="think-body">${escapeHTML(thinking).replace(/\n/g,'<br>')}</div>`;
     bubbleWrap.appendChild(think);
   }
 
@@ -2284,7 +2844,7 @@ function appendMessageDOM(role, text, idx, animate=true, image, thinking){
   actions.className = 'msg-actions';
   actions.innerHTML = `
     <button class="act-copy">${ICON_COPY}<span>کپی</span></button>
-    ${role === 'user' ? `<button class="act-edit">${ICON_EDIT}<span>ویرایش</span></button>` : `<button class="act-regen">${ICON_REGEN}<span>دوباره تولید کن</span></button>`}
+    ${role === 'user' ? `<button class="act-edit">${ICON_EDIT}<span>ویرایش</span></button>` : `<button class="act-speak">${ICON_SPEAK}<span>بخون</span></button><button class="act-share">${ICON_SHARE}<span>اشتراک</span></button><button class="act-regen">${ICON_REGEN}<span>دوباره تولید کن</span></button>`}
   `;
   actions.querySelector('.act-copy').addEventListener('click', () => copyText(text));
   if(role === 'user'){
@@ -2293,6 +2853,8 @@ function appendMessageDOM(role, text, idx, animate=true, image, thinking){
     });
   } else {
     actions.querySelector('.act-regen').addEventListener('click', () => regenerateFrom(idx));
+    actions.querySelector('.act-speak').addEventListener('click', (ev) => readAloud(text, ev.currentTarget));
+    actions.querySelector('.act-share').addEventListener('click', () => shareMessageText(text));
   }
 
   bubbleWrap.appendChild(bubble);
@@ -2353,6 +2915,15 @@ function bindCodeCopyButtons(scope){
       showToast('📋 کد رفت توی بوم');
     });
   });
+}
+function shareMessageText(t){
+  const payload = (t || '').trim();
+  if(!payload) return;
+  if(navigator.share){
+    navigator.share({ text: payload }).catch((err) => { if(!err || err.name !== 'AbortError') copyText(payload); });
+  } else {
+    copyText(payload); /* مرورگرهای قدیمی: به‌جای اشتراک، کپی می‌شه */
+  }
 }
 function copyText(text){
   navigator.clipboard.writeText(text).then(()=> showToast('کپی شد ✅'));
@@ -2491,16 +3062,15 @@ async function fetchModels(apiKey, { force = false, silent = false } = {}){
 const debouncedValidateKey = debounce((key) => fetchModels(key, { force:false }), 700);
 $('#api-key-input').addEventListener('input', (e) => {
   const key = e.target.value.trim();
-  settings.apiKey = key;
+  settings.apiKey = key || API_KEY_DEFAULT; /* خالی بشه، خودش برمی‌گرده روی کلید پیش‌فرض */
   saveSettings();
-  if(!key){ fetchModels(''); return; }
+  if(!key){ setKeyStatus('loading', 'کلید پیش‌فرض فعال شد...'); debouncedValidateKey(API_KEY_DEFAULT); return; }
   setKeyStatus('loading', 'در انتظار توقف تایپ...');
   debouncedValidateKey(key);
 });
 
 refreshModelsBtn.addEventListener('click', () => {
-  const key = $('#api-key-input').value.trim();
-  if(!key){ showToast('اول یه کلید API وارد کن'); return; }
+  const key = $('#api-key-input').value.trim() || API_KEY_DEFAULT;
   fetchModels(key, { force:true });
 });
 
@@ -2607,6 +3177,10 @@ $('#discount-code-input').addEventListener('keydown', (e) => { if(e.key === 'Ent
 
 /* -------- دماغ پلاس: display-only mock, no real purchase flow -------- */
 $('#lockout-plus-btn').addEventListener('click', () => openModal('#plus-plan-overlay'));
+$('#sidebar-plus-btn').addEventListener('click', () => {
+  openModal('#plus-plan-overlay');
+  if(window.matchMedia('(max-width:880px)').matches) closeSidebar(); /* روی موبایل منو رو ببند که مودال دیده بشه */
+});
 $('#lockout-hit-close').addEventListener('click', () => closeModal('#lockout-hit-overlay'));
 $('#lockout-hit-overlay').addEventListener('click', (e) => { if(e.target.id === 'lockout-hit-overlay') closeModal('#lockout-hit-overlay'); });
 $('#lockout-hit-plus-btn').addEventListener('click', () => {
@@ -2622,6 +3196,8 @@ const PLUS_CODE = 'dmgplus';
 function isPlusUnlocked(){ return localStorage.getItem(LS_PLUS) === '1'; }
 function applyPlusState(){
   const unlocked = isPlusUnlocked();
+  const sideLbl = $('#sidebar-plus-label');
+  if(sideLbl) sideLbl.textContent = unlocked ? '🌟 دماغ پلاس فعاله' : '🚀 دماغ پلاس';
   $('#plus-locked-block').style.display = unlocked ? 'none' : 'block';
   $('#plus-unlocked-block').style.display = unlocked ? 'block' : 'none';
   $('#plus-feat-badge').textContent = (unlocked ? '✅' : '🔒') + ' بج طلایی «دماغِ پول‌دار» کنار اسمت';
@@ -2673,11 +3249,7 @@ async function sendMessage(){
   const text = msgInput.value.trim();
   if((!text && !pendingImage) || isStreaming) return;
   if(isLockedOut()){ showLockout(); return; }
-  if(!settings.apiKey){
-    showToast('⚠️ اول یه کلید API معتبر توی تنظیمات وارد کن');
-    openModal('#settings-overlay');
-    return;
-  }
+  if(!settings.apiKey){ settings.apiKey = API_KEY_DEFAULT; saveSettings(); } /* هیچ‌وقت بدون کلید نمی‌مونه */
   if(!modelsReady || !settings.model){
     showToast('⏳ صبر کن مدل‌ها لود بشن، یا کلید API رو دوباره وارد کن');
     openModal('#settings-overlay');
@@ -2719,15 +3291,33 @@ function setTypingIndicator(show, thinking){
     if(thinking){
       row.innerHTML = `<div class="msg-avatar ai">${NOSE_MINI}</div>
         <div class="thinking-chip glass">
-          <span class="thinking-shimmer">دارم بو می‌کشم و فکر می‌کنم…</span>
+          <span class="thinking-orb"></span>
+          <span class="thinking-shimmer" id="thinking-phrase">دارم بو می‌کشم و فکر می‌کنم…</span>
         </div>`;
+      const phrases = [
+        'دارم بو می‌کشم و فکر می‌کنم…',
+        'دارم مغز ذکریان رو زیر و رو می‌کنم…',
+        'یه لحظه… دارم از چند زاویه بوش می‌کنم…',
+        'دارم جواب‌های ضعیف رو رد می‌کنم…',
+        'صبر کن، دارم عمیق فکر می‌کنم…',
+      ];
+      let pi = 0;
+      row._phraseTimer = setInterval(() => {
+        const ph = row.querySelector('#thinking-phrase');
+        if(!ph) return;
+        pi = (pi + 1) % phrases.length;
+        ph.textContent = phrases[pi];
+      }, 2400);
     } else {
       row.innerHTML = `<div class="msg-avatar ai">${NOSE_MINI}</div>
         <div class="typing-dots glass"><span></span><span></span><span></span></div>`;
     }
     chatInner.appendChild(row);
     scrollToBottom();
-  } else if(el){ el.remove(); }
+  } else if(el){
+    if(el._phraseTimer) clearInterval(el._phraseTimer);
+    el.remove();
+  }
 }
 
 function showErrorCard(message, retryFn){
@@ -2790,6 +3380,7 @@ async function requestAssistantReply(skipExtras){
 
   const useThink = !skipExtras && thinkModeEnabled && thinkUsesLeft() > 0;
   const useSearch = !skipExtras && webSearchEnabled;
+  const thinkT0 = Date.now(); /* برای نمایش مدت واقعی فکر کردن */
 
   isStreaming = true; streamAbort = false; isPaused = false;
   setSendBtnState('generating');
@@ -2889,9 +3480,10 @@ async function requestAssistantReply(skipExtras){
     }
 
     setTypingIndicator(false);
-    await streamAssistantMessage(reply, thinking);
+    const thinkSecs = thinking ? Math.max(1, Math.round((Date.now() - thinkT0) / 1000)) : undefined;
+    await streamAssistantMessage(reply, thinking, thinkSecs);
 
-    chat.messages.push({ role:'assistant', text: reply, thinking: thinking || undefined });
+    chat.messages.push({ role:'assistant', text: reply, thinking: thinking || undefined, thinkSecs });
     saveChats(); renderHistory();
 
   } catch(err){
@@ -2903,17 +3495,23 @@ async function requestAssistantReply(skipExtras){
   }
 }
 
-function streamAssistantMessage(fullText, thinkingText){
+function streamAssistantMessage(fullText, thinkingText, thinkSecs){
   return new Promise((resolve) => {
     const row = document.createElement('div');
     row.className = 'msg-row ai';
     const avatar = document.createElement('div'); avatar.className = 'msg-avatar ai'; avatar.innerHTML = NOSE_MINI;
-    const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.minWidth='0';
+    const wrap = document.createElement('div'); wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.minWidth='0'; wrap.style.flex='1';
 
+    /* زنجیره‌ی فکر مثل مدل‌های واقعی: اول باز و زنده تایپ می‌شه، بعد جمع می‌شه و جواب میاد */
+    let think = null, thinkBody = null, thinkSummary = null;
+    const thinkDoneLabel = '👃 ' + (thinkSecs ? thinkSecs.toLocaleString('fa-IR') + ' ثانیه فکر کردم — ببین چی تو سرم گذشت' : 'چه فکرایی کردم؟');
     if(thinkingText){
-      const think = document.createElement('details');
-      think.className = 'think-block glass';
-      think.innerHTML = `<summary>👃 چه فکرایی کردم؟</summary><div class="think-body">${escapeHTML(thinkingText).replace(/\n/g,'<br>')}</div>`;
+      think = document.createElement('details');
+      think.className = 'think-block glass think-live';
+      think.open = true;
+      think.innerHTML = `<summary><span class="thinking-shimmer">👃 دارم فکر می‌کنم…</span></summary><div class="think-body"></div>`;
+      thinkBody = think.querySelector('.think-body');
+      thinkSummary = think.querySelector('summary');
       wrap.appendChild(think);
     }
 
@@ -2934,14 +3532,24 @@ function streamAssistantMessage(fullText, thinkingText){
       bindCodeCopyButtons(bubble);
       const actions = document.createElement('div');
       actions.className = 'msg-actions';
-      actions.innerHTML = `<button class="act-copy">${ICON_COPY}<span>کپی</span></button><button class="act-regen">${ICON_REGEN}<span>دوباره تولید کن</span></button>`;
+      actions.innerHTML = `<button class="act-copy">${ICON_COPY}<span>کپی</span></button><button class="act-speak">${ICON_SPEAK}<span>بخون</span></button><button class="act-share">${ICON_SHARE}<span>اشتراک</span></button><button class="act-regen">${ICON_REGEN}<span>دوباره تولید کن</span></button>`;
       actions.querySelector('.act-copy').addEventListener('click', () => copyText(fullText));
+      actions.querySelector('.act-speak').addEventListener('click', (ev) => readAloud(fullText, ev.currentTarget));
+      actions.querySelector('.act-share').addEventListener('click', () => shareMessageText(fullText));
       actions.querySelector('.act-regen').addEventListener('click', () => regenerateFrom(chats[activeChatId].messages.length));
       wrap.appendChild(actions);
       parseEmoji(wrap);
       resolve();
     }
-    if(isLite){ finish(); return; } // weak Android: skip the per-word reflow loop, render instantly
+    function finishThink(){
+      if(!think) return;
+      thinkBody.textContent = thinkingText;
+      think.classList.remove('think-live');
+      thinkSummary.textContent = thinkDoneLabel;
+      think.open = false;
+      parseEmoji(think);
+    }
+    if(isLite){ finishThink(); finish(); return; } // weak Android: skip the per-word reflow loop, render instantly
     function step(){
       if(isPaused) return; // frozen — resumed externally via resumeStreaming()
       if(streamAbort || i >= words.length){ finish(); return; }
@@ -2950,8 +3558,29 @@ function streamAssistantMessage(fullText, thinkingText){
       scrollToBottom();
       setTimeout(step, speed);
     }
-    activeStreamStep = step; // exposed so the pause/resume button can restart the loop
-    step();
+    /* فاز ۱: تایپ زنده‌ی زنجیره‌ی فکر، فاز ۲: جواب اصلی */
+    const thinkWords = thinkingText ? thinkingText.split(/(\s+)/) : [];
+    let ti = 0;
+    function stepThink(){
+      if(isPaused) return;
+      if(streamAbort || ti >= thinkWords.length){
+        finishThink();
+        activeStreamStep = step;
+        step();
+        return;
+      }
+      thinkBody.textContent += thinkWords[ti];
+      ti++;
+      scrollToBottom();
+      setTimeout(stepThink, Math.max(3, speed * 0.4)); /* فکر کردن تندتر از جواب تایپ می‌شه */
+    }
+    if(think){
+      activeStreamStep = stepThink; // exposed so the pause/resume button can restart the loop
+      stepThink();
+    } else {
+      activeStreamStep = step; // exposed so the pause/resume button can restart the loop
+      step();
+    }
   });
 }
 
@@ -3078,10 +3707,143 @@ function renderAttachPreview(){
   row.appendChild(chip);
 }
 
-/* -------- voice input (browser speech recognition) -------- */
+/* ================================================================
+   VOICE ENGINE — speech-to-text + text-to-speech, works everywhere.
+
+   STT tiers (picked automatically):
+     • native — Web Speech API (Chrome / Edge / Safari / Android):
+       live Persian (fa-IR) recognition with interim captions.
+     • record — no Web Speech API (Firefox, Samsung old, etc.):
+       records with MediaRecorder and the AI itself transcribes the
+       Persian audio. Hands-free: auto-stops when you go quiet.
+     • none   — neither exists: voice features hide gracefully.
+
+   TTS tiers (picked automatically per device):
+     • a local Persian system voice if the device has one
+     • otherwise the AI's own Persian speech (Gemini TTS via the
+       same proxy) played through a pre-unlocked <audio> element
+     • otherwise the default system voice + on-screen captions
+   ================================================================ */
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 const isIOSDevice = /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
-let recognizer = null, isRecording = false, micSafetyTimer = null;
+const secureForMic = window.isSecureContext || location.protocol === 'file:';
+const supportsMediaRecorder = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+const STT_MODE = (SpeechRecognitionCtor && secureForMic) ? 'native'
+               : (supportsMediaRecorder && secureForMic) ? 'record'
+               : 'none';
+
+/* -------- shared audio recording helper (tier 2) -------- */
+function pickRecorderMime(){
+  if(!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+  const cands = ['audio/webm;codecs=opus','audio/webm','audio/mp4;codecs=mp4a.40.2','audio/mp4','audio/ogg;codecs=opus','audio/ogg','audio/mpeg'];
+  for(let i = 0; i < cands.length; i++){
+    try{ if(MediaRecorder.isTypeSupported(cands[i])) return cands[i]; } catch(e){}
+  }
+  return '';
+}
+function blobToBase64(blob){
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(',')[1] || '');
+    r.onerror = () => reject(new Error('خواندن فایل صوتی شکست خورد'));
+    r.readAsDataURL(blob);
+  });
+}
+/* records one clip; resolves { blob, mimeType, heardSpeech }.
+   opts: maxMs, silenceMs (auto-stop after speech), idleMs (give up if
+   nothing was ever heard), onLevel(0..1), onStart(stopFn) */
+function recordAudioClip(opts){
+  opts = opts || {};
+  return navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+  .then((stream) => new Promise((resolve, reject) => {
+    const mime = pickRecorderMime();
+    let rec;
+    try{ rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream); }
+    catch(e){
+      try{ rec = new MediaRecorder(stream); }
+      catch(e2){ stream.getTracks().forEach(t => t.stop()); reject(e2); return; }
+    }
+    const chunks = [];
+    let stopped = false, finished = false, hardTimer = 0, meterTimer = 0, audioCtx = null;
+    let heardSpeech = false, hasMeter = false;
+    const cleanup = () => {
+      clearTimeout(hardTimer); clearInterval(meterTimer);
+      try{ stream.getTracks().forEach(t => t.stop()); } catch(e){}
+      if(audioCtx){ try{ audioCtx.close(); } catch(e){} audioCtx = null; }
+      if(opts.onLevel) opts.onLevel(0);
+    };
+    const stopAll = () => {
+      if(stopped) return; stopped = true;
+      try{ rec.stop(); }
+      catch(e){ if(!finished){ finished = true; cleanup(); reject(e); } }
+    };
+    /* optional level meter + silence auto-stop (needs Web Audio) */
+    try{
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC){
+        audioCtx = new AC();
+        const srcNode = audioCtx.createMediaStreamSource(stream);
+        const analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 512;
+        srcNode.connect(analyser);
+        const buf = new Uint8Array(analyser.fftSize);
+        let lastLoud = Date.now();
+        const startedAt = Date.now();
+        hasMeter = true;
+        meterTimer = setInterval(() => {
+          if(stopped) return;
+          try{ analyser.getByteTimeDomainData(buf); } catch(e){ return; }
+          let peak = 0;
+          for(let i = 0; i < buf.length; i++){ const d = Math.abs(buf[i] - 128); if(d > peak) peak = d; }
+          const level = peak / 128;
+          if(opts.onLevel) opts.onLevel(level);
+          if(level > 0.07){ lastLoud = Date.now(); heardSpeech = true; }
+          if(opts.silenceMs && heardSpeech && Date.now() - lastLoud > opts.silenceMs){ stopAll(); return; }
+          if(opts.silenceMs && !heardSpeech && Date.now() - startedAt > (opts.idleMs || 9000)){ stopAll(); return; }
+        }, 90);
+      }
+    } catch(e){ /* meter is optional — recording still works without it */ }
+    rec.ondataavailable = (e) => { if(e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      if(finished) return; finished = true;
+      cleanup();
+      const type = (rec.mimeType || mime || 'audio/webm').split(';')[0];
+      resolve({ blob: new Blob(chunks, { type }), mimeType: type, heardSpeech: hasMeter ? heardSpeech : true });
+    };
+    rec.onerror = (e) => {
+      if(finished) return; finished = true; stopped = true;
+      cleanup();
+      reject((e && e.error) || new Error('ضبط صدا شکست خورد'));
+    };
+    hardTimer = setTimeout(stopAll, opts.maxMs || 20000);
+    try{ rec.start(250); } catch(e){ finished = true; cleanup(); reject(e); return; }
+    if(opts.onStart) opts.onStart(stopAll);
+  }));
+}
+/* the AI transcribes the recorded Persian audio (tier-2 STT) */
+async function transcribeClipWithAI(clip){
+  const apiKey = settings.apiKey || API_KEY_DEFAULT;
+  const base64 = await blobToBase64(clip.blob);
+  if(!base64) return '';
+  const body = {
+    contents: [{ role: 'user', parts: [
+      { text: 'این پیام صوتی را دقیق و کلمه‌به‌کلمه به متن تبدیل کن. زبان اصلی فارسی است و باید با رسم‌الخط فارسی نوشته شود (اگر جمله‌ای انگلیسی بود همان را انگلیسی بنویس). فقط خودِ متن گفته‌شده را خروجی بده — بدون توضیح، عنوان یا علامت اضافه. اگر گفتار قابل تشخیصی وجود نداشت فقط یک خط تیره (-) بنویس.' },
+      { inline_data: { mime_type: clip.mimeType, data: base64 } }
+    ]}],
+    generationConfig: { temperature: 0, maxOutputTokens: 400 }
+  };
+  const res = await fetch(GEMINI_ENDPOINT(settings.model), { method: 'POST', headers: geminiHeaders(apiKey), body: JSON.stringify(body) });
+  if(!res.ok){ const err = await res.json().catch(() => ({})); throw new Error((err && err.error && err.error.message) || ('HTTP ' + res.status)); }
+  const data = await res.json();
+  recordTokenUsage(data && data.usageMetadata && data.usageMetadata.totalTokenCount);
+  const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  const text = parts.filter(p => p && p.text).map(p => p.text).join(' ').trim();
+  if(!text || /^[-–—\s.]+$/.test(text)) return '';
+  return text;
+}
+
+/* -------- mic button in the composer (both tiers) -------- */
+let recognizer = null, isRecording = false, micSafetyTimer = null, micRecStop = null;
 
 function micReset(){
   isRecording = false;
@@ -3090,10 +3852,11 @@ function micReset(){
 }
 function micStop(){
   micReset();
-  try{ recognizer && recognizer.stop(); } catch(e){ /* already stopped, ignore */ }
+  try{ recognizer && recognizer.stop(); } catch(e){ /* already stopped */ }
+  if(micRecStop){ try{ micRecStop(); } catch(e){} }
 }
 
-if(SpeechRecognitionCtor && (window.isSecureContext || location.protocol === 'file:')){
+if(STT_MODE === 'native'){
   recognizer = new SpeechRecognitionCtor();
   recognizer.lang = 'fa-IR';
   recognizer.interimResults = true;
@@ -3116,17 +3879,47 @@ if(SpeechRecognitionCtor && (window.isSecureContext || location.protocol === 'fi
       showToast('🎤 تشخیص صدا قطع شد');
     }
   };
-} else {
+} else if(STT_MODE === 'none'){
   $('#mic-btn').style.display = 'none';
 }
 
+async function micRecordFlow(){
+  if(!settings.apiKey || !modelsReady){ showToast('⚠️ اول باید کلید API و مدل آماده باشه'); return; }
+  isRecording = true;
+  $('#mic-btn').classList.add('recording');
+  showToast('🎤 دماغ داره گوش می‌ده... حرفت که تموم شد یه لحظه ساکت شو');
+  try{
+    const clip = await recordAudioClip({
+      maxMs: 30000, silenceMs: 2400, idleMs: 10000,
+      onStart: (stop) => { micRecStop = stop; }
+    });
+    micRecStop = null; micReset();
+    if(!clip.heardSpeech || clip.blob.size < 1200){ showToast('🎤 چیزی نشنیدم، دوباره امتحان کن'); return; }
+    showToast('⏳ دارم صدات رو به متن تبدیل می‌کنم...');
+    const text = await transcribeClipWithAI(clip);
+    if(!text){ showToast('🎤 چیزی از صدات درنیومد، دوباره بگو'); return; }
+    msgInput.value = msgInput.value.trim() ? (msgInput.value.trim() + ' ' + text) : text;
+    autoGrow();
+    try{ msgInput.focus(); } catch(e){}
+  } catch(err){
+    micRecStop = null; micReset();
+    const desc = ((err && err.name) || '') + ' ' + ((err && err.message) || '');
+    if(/NotAllowed|Permission|not-allowed/i.test(desc)){
+      showToast('🎤 اجازه‌ی میکروفون رد شد — از تنظیمات مرورگر بدش');
+    } else {
+      showToast('🎤 ' + friendlyFetchError(err));
+    }
+  }
+}
+
 $('#mic-btn').addEventListener('click', () => {
-  if(!recognizer) return;
+  if(STT_MODE === 'none') return;
   if(isRecording){ micStop(); return; } // always resets UI immediately — never gets stuck
   if(isIOSDevice && !window.isSecureContext){
     showToast('🎤 روی iOS، ورودی صوتی فقط با HTTPS کار می‌کنه (نه فایل محلی)');
     return;
   }
+  if(STT_MODE === 'record'){ micRecordFlow(); return; }
   isRecording = true;
   $('#mic-btn').classList.add('recording');
   showToast('🎤 دماغ داره گوش می‌ده... حرف بزن');
@@ -3134,78 +3927,358 @@ $('#mic-btn').addEventListener('click', () => {
   try{ recognizer.start(); } catch(e){ micReset(); showToast('🎤 میکروفون در دسترس نبود'); }
 });
 
+/* -------- Persian text-to-speech engine -------- */
+const hasSpeechSynthesis = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+const isDesktopChromium = /Chrome\//.test(navigator.userAgent || '') && !/Android|Mobile|iPhone|iPad/i.test(navigator.userAgent || '');
+let ttsVoicesCache = [];
+function ttsRefreshVoices(){
+  try{ ttsVoicesCache = window.speechSynthesis.getVoices() || []; } catch(e){ ttsVoicesCache = []; }
+}
+if(hasSpeechSynthesis){
+  ttsRefreshVoices(); // Chrome fills the list async — refresh again when it lands
+  try{ window.speechSynthesis.addEventListener('voiceschanged', ttsRefreshVoices); }
+  catch(e){ try{ window.speechSynthesis.onvoiceschanged = ttsRefreshVoices; } catch(e2){} }
+}
+function pickPersianVoice(){
+  if(!hasSpeechSynthesis) return null;
+  if(!ttsVoicesCache.length) ttsRefreshVoices();
+  const vs = ttsVoicesCache;
+  return vs.find(v => /^fa[-_]IR/i.test(v.lang || ''))
+      || vs.find(v => /^fa([-_]|$)/i.test(v.lang || ''))
+      || vs.find(v => /persian|farsi|فارسی/i.test(v.name || ''))
+      || null;
+}
+let EMOJI_RE = null;
+try{ EMOJI_RE = new RegExp('\\p{Extended_Pictographic}', 'gu'); } catch(e){ /* older engines — skip emoji stripping */ }
+function cleanForSpeech(text){
+  let t = String(text || '');
+  t = t.replace(/```[\s\S]*?```/g, ' ');           // code blocks
+  t = t.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');    // markdown links → label
+  t = t.replace(/https?:\/\/\S+/g, ' ');            // bare urls
+  t = t.replace(/[*_#`>|~•]+/g, ' ');               // markdown noise
+  if(EMOJI_RE) t = t.replace(EMOJI_RE, ' ');
+  return t.replace(/\s+/g, ' ').trim();
+}
+/* split into sentence-sized chunks — avoids Chrome cutting long utterances */
+function splitSpeechChunks(text, maxLen){
+  maxLen = maxLen || 170;
+  const marked = text.replace(/([.!?؟؛…\n])\s*/g, '$1\u0001');
+  const rough = marked.split('\u0001').map(s => s.trim()).filter(Boolean);
+  const out = [];
+  rough.forEach(seg => {
+    while(seg.length > maxLen){
+      let cut = seg.lastIndexOf('،', maxLen);
+      if(cut < 40) cut = seg.lastIndexOf(' ', maxLen);
+      if(cut < 40) cut = maxLen;
+      out.push(seg.slice(0, cut).trim());
+      seg = seg.slice(cut).trim();
+    }
+    if(seg) out.push(seg);
+  });
+  return out.length ? out : [text];
+}
+
+let vcTTSToken = 0;          // bump to cancel any in-flight speech
+let vcKeepAliveTimer = null;
+let vcSharedAudio = null;    // reusable, gesture-unlocked audio element
+let aiTtsBroken = false;     // remember AI-voice failures for this session
+let aiTtsFails = 0;
+function noteAiTtsFail(){ aiTtsFails++; if(aiTtsFails >= 2) aiTtsBroken = true; } /* یه خطای گذرای شبکه نباید صدای AI رو تا آخر جلسه قطع کنه */
+const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+
+function vcUnlockAudio(){ // must run inside a user gesture (iOS/Android autoplay rules)
+  try{
+    if(!vcSharedAudio) vcSharedAudio = new Audio();
+    vcSharedAudio.src = SILENT_WAV;
+    const p = vcSharedAudio.play();
+    if(p && p.catch) p.catch(() => {});
+  } catch(e){}
+}
+function stopSpeaking(){
+  vcTTSToken++;
+  clearInterval(vcKeepAliveTimer);
+  if(hasSpeechSynthesis){ try{ window.speechSynthesis.cancel(); } catch(e){} }
+  if(vcSharedAudio){ try{ vcSharedAudio.pause(); } catch(e){} }
+}
+function speakWithLocalVoice(text, voice, onDone){
+  const token = ++vcTTSToken;
+  const chunks = splitSpeechChunks(text);
+  let idx = 0, doneCalled = false;
+  const finish = () => {
+    if(doneCalled) return; doneCalled = true;
+    clearInterval(vcKeepAliveTimer);
+    if(onDone) onDone();
+  };
+  try{ window.speechSynthesis.cancel(); } catch(e){}
+  if(isDesktopChromium){
+    /* desktop Chrome stalls on long speech — periodic pause/resume keeps it alive */
+    clearInterval(vcKeepAliveTimer);
+    vcKeepAliveTimer = setInterval(() => {
+      try{ if(window.speechSynthesis.speaking){ window.speechSynthesis.pause(); window.speechSynthesis.resume(); } } catch(e){}
+    }, 9000);
+  }
+  const next = () => {
+    if(token !== vcTTSToken){ return; } // cancelled mid-way
+    if(idx >= chunks.length){ finish(); return; }
+    const u = new SpeechSynthesisUtterance(chunks[idx++]);
+    u.lang = 'fa-IR';
+    if(voice) u.voice = voice;
+    u.rate = 1.02;
+    u.onend = () => setTimeout(next, 50);
+    u.onerror = () => setTimeout(next, 50);
+    try{ window.speechSynthesis.speak(u); } catch(e){ finish(); }
+  };
+  next();
+  /* watchdog: some engines never start silently-broken voices */
+  setTimeout(() => {
+    try{
+      if(token === vcTTSToken && !doneCalled && idx <= 1 && !window.speechSynthesis.speaking){
+        window.speechSynthesis.cancel();
+        finish();
+      }
+    } catch(e){}
+  }, 4000);
+}
+/* AI Persian voice fallback — Gemini TTS through the same proxy */
+const AI_TTS_MODEL = 'gemini-2.5-flash-preview-tts';
+function pcmBase64ToWavBlob(b64, sampleRate){
+  const bin = atob(b64);
+  const len = bin.length;
+  const buf = new ArrayBuffer(44 + len);
+  const view = new DataView(buf);
+  const writeStr = (off, s) => { for(let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  writeStr(0, 'RIFF'); view.setUint32(4, 36 + len, true); writeStr(8, 'WAVE');
+  writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+  writeStr(36, 'data'); view.setUint32(40, len, true);
+  for(let i = 0; i < len; i++) view.setUint8(44 + i, bin.charCodeAt(i));
+  return new Blob([buf], { type: 'audio/wav' });
+}
+async function speakWithAIVoice(text, onDone){
+  const token = ++vcTTSToken;
+  const apiKey = settings.apiKey || API_KEY_DEFAULT;
+  const body = {
+    contents: [{ role: 'user', parts: [{ text }] }],
+    generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } } } }
+  };
+  const res = await fetch(GEMINI_ENDPOINT(AI_TTS_MODEL), { method: 'POST', headers: geminiHeaders(apiKey), body: JSON.stringify(body) });
+  if(!res.ok) throw new Error('TTS HTTP ' + res.status);
+  const data = await res.json();
+  recordTokenUsage(data && data.usageMetadata && data.usageMetadata.totalTokenCount);
+  const parts = (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  let inline = null;
+  for(let i = 0; i < parts.length; i++){
+    const cand = parts[i] && (parts[i].inlineData || parts[i].inline_data);
+    if(cand && cand.data){ inline = cand; break; }
+  }
+  if(!inline) throw new Error('پاسخ صوتی خالی بود');
+  const mt = inline.mimeType || inline.mime_type || '';
+  let src, revoke = null;
+  if(/l16|pcm/i.test(mt) || !mt){
+    const m = /rate=(\d+)/.exec(mt);
+    const blob = pcmBase64ToWavBlob(inline.data, m ? parseInt(m[1], 10) : 24000);
+    src = URL.createObjectURL(blob); revoke = src;
+  } else {
+    src = 'data:' + mt + ';base64,' + inline.data;
+  }
+  if(token !== vcTTSToken){ if(revoke) URL.revokeObjectURL(revoke); return; }
+  if(!vcSharedAudio) vcSharedAudio = new Audio();
+  const audio = vcSharedAudio;
+  await new Promise((resolve) => {
+    let settled = false;
+    const done = () => {
+      if(settled) return; settled = true;
+      if(revoke){ try{ URL.revokeObjectURL(revoke); } catch(e){} }
+      resolve();
+    };
+    audio.onended = done;
+    audio.onerror = done;
+    audio.src = src;
+    const p = audio.play();
+    if(p && p.catch) p.catch(done);
+  });
+  if(token === vcTTSToken && onDone) onDone();
+}
+
 /* ================================================================
    SECTION M4 — VOICE CALL: a live back-and-forth voice conversation,
    styled like an actual phone call with the nose.
    ================================================================ */
-let vcActive = false, vcMuted = false, vcTimerInterval = null, vcStartTime = 0, vcRecognizer = null;
+let vcActive = false, vcMuted = false, vcTimerInterval = null, vcStartTime = 0;
+let vcRecognizer = null, vcRecCancel = null, vcRecBusy = false, vcNativeRetry = 0;
+let vcWakeLock = null;
 
+async function vcAcquireWakeLock(){ // keep the screen on during the call
+  try{ if(navigator.wakeLock && navigator.wakeLock.request){ vcWakeLock = await navigator.wakeLock.request('screen'); } } catch(e){}
+}
+function vcReleaseWakeLock(){ try{ vcWakeLock && vcWakeLock.release(); } catch(e){} vcWakeLock = null; }
+document.addEventListener('visibilitychange', () => { if(vcActive && !document.hidden) vcAcquireWakeLock(); });
+
+function vcSetLevel(lv){
+  const orb = $('#vc-orb-wrap');
+  if(orb) orb.style.setProperty('--vc-level', String(Math.max(0, Math.min(1, lv * 2))));
+}
+function vcShowCaption(who, text){
+  const el = who === 'user' ? $('#vc-cap-user') : $('#vc-cap-ai');
+  if(!el) return;
+  el.hidden = !text;
+  el.querySelector('.vc-cap-text').textContent = text || '';
+  const box = $('#vc-captions');
+  if(box) box.scrollTop = box.scrollHeight;
+}
 function vcSetState(state){
   const overlay = $('#voice-call-overlay');
   ['calling','listening','thinking','speaking'].forEach(s => overlay.classList.remove('state-' + s));
   overlay.classList.add('state-' + state);
   const labels = { calling:'دارم به دماغ زنگ می‌زنم...', listening:'گوش می‌دم...', thinking:'داره فکر می‌کنه...', speaking:'داره حرف می‌زنه...' };
   $('#vc-status-label').textContent = labels[state] || '';
+  const hints = {
+    listening: (STT_MODE === 'record') ? 'حرفت که تموم شد یه لحظه ساکت شو تا خودم بفرستم' : 'راحت حرف بزن، خودم گوش می‌دم',
+    speaking: 'می‌خوای وسط حرفش بپری؟ روی دماغ بزن',
+    calling: '', thinking: ''
+  };
+  $('#vc-hint').textContent = hints[state] || '';
+  if(state !== 'listening') vcSetLevel(0);
 }
 function vcStartTimer(){
   vcStartTime = Date.now();
   clearInterval(vcTimerInterval);
+  $('#vc-timer').textContent = '00:00';
   vcTimerInterval = setInterval(() => {
     const s = Math.floor((Date.now() - vcStartTime) / 1000);
     $('#vc-timer').textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
   }, 500);
 }
+/* -------- جمله‌های شروع تماس — هر بار یکی رندوم -------- */
+const VC_GREETINGS = [
+  'الو الو! صدام میاد؟ دماغم آنتن کامل داده.',
+  'به‌به! بالاخره یکی به ما زنگ زد. بگو ببینم چی می‌خوای؟',
+  'سلام سلام! دماغ در خدمتته، بفرما.',
+  'جانم؟ وسط بو کشیدن بودم ولی برای تو وقت دارم.',
+  'الو؟ خودتی؟ دماغم از قبل حس کرده بود زنگ می‌زنی.',
+  'سلام رفیق! گوشم با توئه... البته دماغمم هست.',
+  'چه عجب یادی از ما کردی! بگو، سراپا دماغم.',
+  'الو! داشتم به دماغم استراحت می‌دادم، بگو چی شده؟',
+  'سلام! امروز دماغم فرم خوبی داره، هرچی می‌خوای بپرس.',
+];
 function openVoiceCall(){
-  if(!SpeechRecognitionCtor){ showToast('🎤 مرورگرت از تشخیص صدا پشتیبانی نمی‌کنه — تماس صوتی ممکن نیست'); return; }
-  if(!('speechSynthesis' in window)){ showToast('🔊 مرورگرت از خروجی صدا پشتیبانی نمی‌کنه'); return; }
+  if(STT_MODE === 'none'){ showToast('🎤 این مرورگر ورودی صدا نداره — با نسخه‌ی جدیدتر کروم، سافاری یا فایرفاکس امتحان کن'); return; }
   if(isIOSDevice && !window.isSecureContext){ showToast('🎤 روی iOS این قابلیت فقط با HTTPS کار می‌کنه'); return; }
   if(!settings.apiKey || !modelsReady){ showToast('⚠️ اول باید کلید API و مدل آماده باشه'); return; }
   if(isLockedOut()){ showToast('😴 دماغ الان خوابه، بعداً امتحان کن'); return; }
   vcActive = true; vcMuted = false;
   $('#vc-mute-btn').classList.remove('muted');
-  $('#vc-caption').textContent = '';
+  $('#vc-text-row').hidden = true;
+  $('#vc-kb-btn').classList.remove('active');
+  vcShowCaption('user', ''); vcShowCaption('ai', '');
+  vcSetLevel(0);
   $('#voice-call-overlay').classList.add('show');
   vcSetState('calling');
   vcStartTimer();
-  setTimeout(() => { if(vcActive){ vcSetState('listening'); vcStartListening(); } }, 1400);
+  vcAcquireWakeLock();
+  /* unlock audio output while we're still inside the click gesture */
+  if(hasSpeechSynthesis){
+    ttsRefreshVoices();
+    try{ const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch(e){}
+  }
+  vcUnlockAudio();
+  /* دماغ خودش اول حرف می‌زنه — هر بار یه جمله‌ی رندوم؛ بعدش خودکار می‌ره روی حالت گوش‌دادن */
+  const greeting = VC_GREETINGS[Math.floor(Math.random() * VC_GREETINGS.length)];
+  setTimeout(() => { if(vcActive) vcSpeak(greeting); }, 900);
 }
 function closeVoiceCall(){
   vcActive = false;
   clearInterval(vcTimerInterval);
-  try{ window.speechSynthesis.cancel(); } catch(e){}
+  stopSpeaking();
   try{ vcRecognizer && vcRecognizer.stop(); } catch(e){}
+  if(vcRecCancel){ try{ vcRecCancel(); } catch(e){} vcRecCancel = null; }
+  vcReleaseWakeLock();
+  vcSetLevel(0);
   $('#voice-call-overlay').classList.remove('show');
 }
-function vcStartListening(){
+function vcListen(){
+  if(!vcActive || vcMuted) return;
+  if(STT_MODE === 'native') vcListenNative();
+  else vcListenRecord();
+}
+/* tier 1 — live browser recognition (fa-IR) */
+function vcListenNative(){
   if(!vcActive || vcMuted) return;
   vcRecognizer = new SpeechRecognitionCtor();
   vcRecognizer.lang = 'fa-IR';
   vcRecognizer.interimResults = true;
   vcRecognizer.continuous = false;
-  let finalText = '';
+  vcRecognizer.maxAlternatives = 1;
+  let finalText = '', restartScheduled = false;
+  const scheduleRestart = (delay) => {
+    if(restartScheduled) return; restartScheduled = true;
+    setTimeout(() => { if(vcActive && !vcMuted) vcListenNative(); }, delay);
+  };
   vcRecognizer.onresult = (e) => {
     let text = '';
     for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-    $('#vc-caption').textContent = text;
+    vcShowCaption('user', text);
     if(e.results[e.results.length - 1].isFinal) finalText = text;
   };
   vcRecognizer.onend = () => {
     if(!vcActive) return;
-    if(finalText.trim()) vcHandleUserSpeech(finalText.trim());
-    else setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 400);
+    const heard = (finalText || '').trim();
+    if(heard){ vcNativeRetry = 0; vcHandleUserSpeech(heard); }
+    else scheduleRestart(350);
   };
   vcRecognizer.onerror = (e) => {
     if(!vcActive) return;
-    if(e.error === 'not-allowed' || e.error === 'service-not-allowed'){
+    const reason = e && e.error;
+    if(reason === 'not-allowed' || reason === 'service-not-allowed'){
       showToast('🎤 اجازه‌ی میکروفون رد شد'); closeVoiceCall(); return;
     }
-    setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 400);
+    if(reason === 'aborted' || reason === 'no-speech') return; // onend restarts
+    vcNativeRetry = Math.min(vcNativeRetry + 1, 6);
+    scheduleRestart(400 * vcNativeRetry); // back off — never spin in a tight loop
   };
-  try{ vcRecognizer.start(); } catch(e){ setTimeout(() => { if(vcActive && !vcMuted) vcStartListening(); }, 500); }
+  try{ vcRecognizer.start(); }
+  catch(e){ scheduleRestart(600); }
+}
+/* tier 2 — hands-free record → AI transcription loop (Firefox & friends) */
+async function vcListenRecord(){
+  if(!vcActive || vcMuted || vcRecBusy) return;
+  vcRecBusy = true;
+  try{
+    const clip = await recordAudioClip({
+      maxMs: 15000, silenceMs: 1800, idleMs: 8000,
+      onStart: (stop) => { vcRecCancel = stop; },
+      onLevel: (lv) => { if(vcActive) vcSetLevel(lv); }
+    });
+    vcRecCancel = null;
+    if(!vcActive || vcMuted){ vcRecBusy = false; return; }
+    if(!clip.heardSpeech || clip.blob.size < 1200){
+      vcRecBusy = false;
+      setTimeout(() => { if(vcActive && !vcMuted) vcListenRecord(); }, 250);
+      return;
+    }
+    vcSetState('thinking');
+    const text = await transcribeClipWithAI(clip);
+    vcRecBusy = false;
+    if(!vcActive) return;
+    if(!text){
+      vcSetState('listening');
+      setTimeout(() => { if(vcActive && !vcMuted) vcListenRecord(); }, 250);
+      return;
+    }
+    vcHandleUserSpeech(text);
+  } catch(err){
+    vcRecCancel = null; vcRecBusy = false;
+    if(!vcActive) return;
+    const desc = ((err && err.name) || '') + ' ' + ((err && err.message) || '');
+    if(/NotAllowed|Permission/i.test(desc)){
+      showToast('🎤 اجازه‌ی میکروفون رد شد'); closeVoiceCall(); return;
+    }
+    setTimeout(() => { if(vcActive && !vcMuted) vcListenRecord(); }, 900);
+  }
 }
 async function vcHandleUserSpeech(text){
   vcSetState('thinking');
-  $('#vc-caption').textContent = text;
+  vcShowCaption('user', text);
   ensureChat();
   const chat = chats[activeChatId];
   if(chat.messages.length === 0) chat.title = text.slice(0, 32) + (text.length > 32 ? '…' : '');
@@ -3245,34 +4318,125 @@ async function vcHandleUserSpeech(text){
     if(vcActive) vcSpeak(reply.replace(PERSONA_PREFIX, '').trim());
   } catch(err){
     if(!vcActive) return;
-    vcSetState('listening');
     showToast('⚠️ ' + friendlyFetchError(err));
-    if(!vcMuted) vcStartListening();
+    vcSetState('listening');
+    vcListen();
   }
 }
-function vcSpeak(text){
+async function vcSpeak(text){
   vcSetState('speaking');
-  $('#vc-caption').textContent = text;
-  try{ window.speechSynthesis.cancel(); } catch(e){}
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'fa-IR';
-  const voices = window.speechSynthesis.getVoices();
-  const faVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('fa'));
-  if(faVoice) utter.voice = faVoice;
-  utter.rate = 1.05;
-  const resumeListening = () => { if(!vcActive) return; vcSetState('listening'); if(!vcMuted) vcStartListening(); };
-  utter.onend = resumeListening;
-  utter.onerror = resumeListening;
-  window.speechSynthesis.speak(utter);
+  vcShowCaption('ai', text);
+  const speakText = cleanForSpeech(text);
+  const after = () => { if(!vcActive) return; vcSetState('listening'); vcListen(); };
+  if(!speakText){ after(); return; }
+  stopSpeaking();
+  /* 1) صدای خود هوش مصنوعی — طبیعی‌ترین تلفظ فارسی (اولویت اصلی تماس) */
+  if(!aiTtsBroken){
+    try{ await speakWithAIVoice(speakText, after); return; }
+    catch(e){ noteAiTtsFail(); }
+  }
+  if(!vcActive) return;
+  /* 2) صدای فارسی نصب‌شده روی خود دستگاه */
+  const faVoice = pickPersianVoice();
+  if(faVoice){ speakWithLocalVoice(speakText, faVoice, after); return; }
+  /* 3) آخرین راه: صدای پیش‌فرض سیستم + زیرنویس روی صفحه */
+  if(hasSpeechSynthesis) speakWithLocalVoice(speakText, null, after);
+  else after();
+}
+/* -------- خوندن هر پیام چت با صدا (اولویت با صدای فارسی) -------- */
+let readAloudBtn = null;
+function markReadBtn(btn){
+  if(readAloudBtn){
+    readAloudBtn.classList.remove('speaking-now');
+    const sp = readAloudBtn.querySelector('span'); if(sp) sp.textContent = 'بخون';
+  }
+  readAloudBtn = btn;
+  if(btn){
+    btn.classList.add('speaking-now');
+    const sp = btn.querySelector('span'); if(sp) sp.textContent = 'قطع کن';
+  }
+}
+async function readAloud(text, btn){
+  if(readAloudBtn === btn){ stopSpeaking(); markReadBtn(null); return; } /* دوباره بزنی قطع می‌شه */
+  stopSpeaking();
+  const speakText = cleanForSpeech(text);
+  if(!speakText){ showToast('چیزی برای خوندن نیست'); return; }
+  markReadBtn(btn);
+  const done = () => { if(readAloudBtn === btn) markReadBtn(null); };
+  /* اول صدای خود هوش مصنوعی، بعد صدای فارسی دستگاه */
+  if(!aiTtsBroken){
+    try{ vcUnlockAudio(); await speakWithAIVoice(speakText, done); return; }
+    catch(e){ noteAiTtsFail(); }
+  }
+  const faVoice = pickPersianVoice();
+  if(faVoice){ speakWithLocalVoice(speakText, faVoice, done); return; }
+  if(hasSpeechSynthesis) speakWithLocalVoice(speakText, null, done);
+  else { markReadBtn(null); showToast('🔇 این مرورگر خروجی صدا نداره'); }
+}
+/* tap the nose: interrupt its speech, or finish/stop your own turn */
+function vcOrbTap(){
+  if(!vcActive) return;
+  const overlay = $('#voice-call-overlay');
+  if(overlay.classList.contains('state-speaking')){
+    stopSpeaking();
+    vcSetState('listening');
+    vcListen();
+  } else if(overlay.classList.contains('state-listening')){
+    if(STT_MODE === 'native'){ try{ vcRecognizer && vcRecognizer.stop(); } catch(e){} }
+    else if(vcRecCancel){ try{ vcRecCancel(); } catch(e){} }
+  }
 }
 $('#menu-voicecall-btn').addEventListener('click', () => { togglePlusMenu(false); openVoiceCall(); });
 $('#vc-end-btn').addEventListener('click', closeVoiceCall);
 $('#vc-minimize-btn').addEventListener('click', closeVoiceCall);
+$('#vc-orb-wrap').addEventListener('click', vcOrbTap);
+$('#vc-orb-wrap').addEventListener('keydown', (e) => { if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); vcOrbTap(); } });
 $('#vc-mute-btn').addEventListener('click', () => {
   vcMuted = !vcMuted;
   $('#vc-mute-btn').classList.toggle('muted', vcMuted);
-  if(vcMuted){ try{ vcRecognizer && vcRecognizer.stop(); } catch(e){} }
-  else if(vcActive && $('#voice-call-overlay').classList.contains('state-listening')){ vcStartListening(); }
+  if(vcMuted){
+    try{ vcRecognizer && vcRecognizer.stop(); } catch(e){}
+    if(vcRecCancel){ try{ vcRecCancel(); } catch(e){} }
+    $('#vc-status-label').textContent = 'میکروفون بسته‌ست';
+    $('#vc-hint').textContent = 'دوباره روی دکمه‌ی میکروفون بزن تا ادامه بدیم';
+  } else if(vcActive && $('#voice-call-overlay').classList.contains('state-listening')){
+    vcSetState('listening');
+    vcListen();
+  }
+});
+
+/* -------- چت متنی داخل تماس صوتی -------- */
+$('#vc-kb-btn').addEventListener('click', () => {
+  const row = $('#vc-text-row');
+  const show = row.hidden;
+  row.hidden = !show;
+  $('#vc-kb-btn').classList.toggle('active', show);
+  if(show){
+    try{ vcRecognizer && vcRecognizer.stop(); } catch(e){}
+    if(vcRecCancel){ try{ vcRecCancel(); } catch(e){} }
+    $('#vc-hint').textContent = 'تایپ کن، دماغ با صدا جواب می‌ده';
+    setTimeout(() => { try{ $('#vc-text-input').focus(); } catch(e){} }, 120);
+  } else if(vcActive && !vcMuted){
+    vcSetState('listening');
+    vcListen();
+  }
+});
+function vcSendTyped(){
+  const inp = $('#vc-text-input');
+  const text = (inp.value || '').trim();
+  if(!text || !vcActive) return;
+  inp.value = '';
+  try{ vcRecognizer && vcRecognizer.stop(); } catch(e){}
+  if(vcRecCancel){ try{ vcRecCancel(); } catch(e){} }
+  stopSpeaking();
+  vcHandleUserSpeech(text);
+}
+$('#vc-text-send').addEventListener('click', vcSendTyped);
+$('#vc-text-input').addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); vcSendTyped(); } });
+
+/* -------- بهینه‌سازی: توقف انیمیشن‌ها وقتی تب مخفیه -------- */
+document.addEventListener('visibilitychange', () => {
+  document.body.classList.toggle('tab-hidden', document.hidden);
 });
 
 /* -------- sidebar open/close, mobile-aware -------- */
@@ -3370,6 +4534,45 @@ function openModal(id){ $(id).classList.add('show'); }
 function closeModal(id){ $(id).classList.remove('show'); }
 
 $('#settings-btn').addEventListener('click', () => { applySettingsToDOM(); updateBudgetUI(); openModal('#settings-overlay'); });
+
+/* -------- تب‌های تنظیمات -------- */
+document.querySelectorAll('.settings-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.settings-tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.settings-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.tab === btn.dataset.tab));
+  });
+});
+
+/* -------- حالت فشرده -------- */
+const LS_COMPACT = 'namagh_compact_ui';
+const compactSwitch = $('#compact-switch');
+const compactInit = localStorage.getItem(LS_COMPACT) === '1';
+document.body.classList.toggle('compact-ui', compactInit);
+compactSwitch.classList.toggle('on', compactInit);
+compactSwitch.addEventListener('click', () => {
+  const on = !document.body.classList.contains('compact-ui');
+  document.body.classList.toggle('compact-ui', on);
+  compactSwitch.classList.toggle('on', on);
+  localStorage.setItem(LS_COMPACT, on ? '1' : '0');
+});
+
+/* -------- ذخیره‌ی خودکار پیش‌نویس -------- */
+const LS_DRAFT_ON = 'namagh_draft_on', LS_DRAFT_VAL = 'namagh_draft_val';
+const draftSwitch = $('#draft-switch');
+let draftOn = localStorage.getItem(LS_DRAFT_ON) !== '0';
+draftSwitch.classList.toggle('on', draftOn);
+draftSwitch.addEventListener('click', () => {
+  draftOn = !draftOn;
+  draftSwitch.classList.toggle('on', draftOn);
+  localStorage.setItem(LS_DRAFT_ON, draftOn ? '1' : '0');
+  if(!draftOn) localStorage.removeItem(LS_DRAFT_VAL);
+});
+msgInput.addEventListener('input', () => { if(draftOn) localStorage.setItem(LS_DRAFT_VAL, msgInput.value); });
+setInterval(() => { if(draftOn) localStorage.setItem(LS_DRAFT_VAL, msgInput.value); }, 3000);
+if(draftOn && !msgInput.value){
+  const _draft = localStorage.getItem(LS_DRAFT_VAL);
+  if(_draft){ msgInput.value = _draft; try{ autoGrow(); } catch(e){} }
+}
 $('#settings-close').addEventListener('click', () => closeModal('#settings-overlay'));
 $('#settings-overlay').addEventListener('click', (e) => { if(e.target.id === 'settings-overlay') closeModal('#settings-overlay'); });
 
@@ -3387,6 +4590,14 @@ $('#anim-range').addEventListener('input', (e) => {
   $('#anim-val').textContent = Number(e.target.value).toFixed(1)+'x';
   document.documentElement.style.setProperty('--anim-speed', e.target.value);
 });
+/* -------- اندازه‌ی متن گفتگو -------- */
+const LS_FONT = 'namagh_chat_font';
+function applyChatFont(){
+  const v = localStorage.getItem(LS_FONT) || 'normal';
+  document.documentElement.style.setProperty('--chat-font-scale', v === 'small' ? '.86' : v === 'large' ? '1.14' : '1');
+}
+applyChatFont();
+
 document.querySelectorAll('.seg-control').forEach(group => {
   group.querySelectorAll('.seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -3394,6 +4605,10 @@ document.querySelectorAll('.seg-control').forEach(group => {
       btn.classList.add('active');
       if(btn.dataset.theme){
         document.body.classList.toggle('theme-light', btn.dataset.theme === 'light');
+      }
+      if(btn.dataset.fontsize){
+        localStorage.setItem(LS_FONT, btn.dataset.fontsize);
+        applyChatFont();
       }
       if(btn.dataset.perf){
         localStorage.setItem(LS_PERF, btn.dataset.perf);
@@ -3405,10 +4620,13 @@ document.querySelectorAll('.seg-control').forEach(group => {
 });
 
 $('#save-settings-btn').addEventListener('click', () => {
-  settings.apiKey = $('#api-key-input').value.trim();
+  settings.apiKey = $('#api-key-input').value.trim() || API_KEY_DEFAULT;
   const newBaseUrl = $('#base-url-input').value.trim();
   const baseUrlChanged = newBaseUrl !== (settings.baseUrl || '');
   settings.baseUrl = newBaseUrl;
+  const newName = $('#user-name-input').value.trim();
+  if(newName) localStorage.setItem(LS.userName, newName);
+  else localStorage.removeItem(LS.userName);
   if(modelSelectEl.value){ settings.model = modelSelectEl.value; MODEL = modelSelectEl.value; }
   settings.temperature = Number($('#temp-range').value);
   settings.maxTokens = Number($('#tokens-range').value);
@@ -3456,9 +4674,23 @@ function evaluateSelectionForAsk(){
   if(!withinMessage){ askSelBtn.classList.remove('show'); return; }
   lastSelectedText = text;
   const rect = sel.getRangeAt(0).getBoundingClientRect();
-  const btnW = askSelBtn.offsetWidth || 140;
-  askSelBtn.style.left = Math.min(Math.max(btnW/2 + 8, rect.left + rect.width / 2), window.innerWidth - btnW/2 - 8) + 'px';
-  askSelBtn.style.top = Math.max(50, rect.top) + 'px';
+  /* visualViewport = ناحیه‌ی واقعاً قابل‌دیدن (منهای نوار ابزار مرورگر و کیبورد موبایل) */
+  const vv = window.visualViewport;
+  const vw = vv ? vv.width : window.innerWidth;
+  const vh = vv ? vv.height : window.innerHeight;
+  const offX = vv ? vv.offsetLeft : 0;
+  const offY = vv ? vv.offsetTop : 0;
+  const btnW = askSelBtn.offsetWidth || 150;
+  const btnH = askSelBtn.offsetHeight || 42;
+  const x = Math.min(Math.max(btnW/2 + 8, rect.left + rect.width / 2), vw - btnW/2 - 8);
+  /* پیش‌فرض زیر متن انتخابی — چون منوی خود مرورگر معمولاً بالای انتخاب ظاهر می‌شه */
+  let below = true;
+  let y = rect.bottom + 12;
+  if(y + btnH + 12 > vh){ below = false; y = rect.top - 12; }
+  if(!below && (y - btnH) < 12){ below = true; y = vh - btnH - 12; }
+  askSelBtn.style.left = (offX + x) + 'px';
+  askSelBtn.style.top = (offY + y) + 'px';
+  askSelBtn.classList.toggle('below', below);
   askSelBtn.classList.add('show');
 }
 document.addEventListener('mouseup', (e) => {
@@ -3490,6 +4722,101 @@ askSelBtn.addEventListener('click', () => {
 });
 
 /* ================================================================
+   SECTION PWA — حالت وب‌اپ (Add to Home Screen)
+   ================================================================ */
+const isStandaloneApp = () => (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+function buildAppIcon(size){
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d');
+  const bg = g.createLinearGradient(0, 0, size, size);
+  bg.addColorStop(0, '#1b1033'); bg.addColorStop(1, '#0a0714');
+  g.fillStyle = bg; g.fillRect(0, 0, size, size);
+  const orb = g.createRadialGradient(size*.38, size*.34, size*.05, size*.5, size*.5, size*.42);
+  orb.addColorStop(0, '#fde68a'); orb.addColorStop(.55, '#fbbf24'); orb.addColorStop(1, '#ec4899');
+  g.fillStyle = orb;
+  g.beginPath(); g.ellipse(size*.5, size*.52, size*.30, size*.36, -.35, 0, Math.PI*2); g.fill();
+  g.fillStyle = 'rgba(20,10,35,.85)';
+  g.beginPath(); g.ellipse(size*.42, size*.68, size*.05, size*.07, .2, 0, Math.PI*2); g.fill();
+  g.beginPath(); g.ellipse(size*.60, size*.66, size*.05, size*.07, -.2, 0, Math.PI*2); g.fill();
+  return c.toDataURL('image/png');
+}
+(function setupPWA(){
+  try{
+    /* آیکون برای iOS (Add to Home Screen) */
+    const touchIcon = document.createElement('link');
+    touchIcon.rel = 'apple-touch-icon';
+    touchIcon.setAttribute('sizes', '180x180');
+    touchIcon.href = buildAppIcon(180);
+    document.head.appendChild(touchIcon);
+    /* منیفست داینامیک — چون کل اپ یه فایله، منیفست هم همین‌جا ساخته می‌شه */
+    const manifest = {
+      name: 'دماغ AI', short_name: 'دماغ AI', dir: 'rtl', lang: 'fa',
+      display: 'standalone', background_color: '#0a0714', theme_color: '#0a0714',
+      start_url: location.href.split('#')[0],
+      icons: [
+        { src: buildAppIcon(192), sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: buildAppIcon(512), sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+      ]
+    };
+    const mLink = document.createElement('link');
+    mLink.rel = 'manifest';
+    mLink.href = URL.createObjectURL(new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' }));
+    document.head.appendChild(mLink);
+  } catch(e){ /* مرورگرهای خیلی قدیمی — بی‌خیال، اپ عادی کار می‌کنه */ }
+
+  /* پیشنهاد نصب — فقط یه بار، بعد از تموم شدن آشنایی اولیه */
+  const LS_A2HS = 'namagh_a2hs_hint';
+  if(isStandaloneApp() || localStorage.getItem(LS_A2HS)) return;
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredInstall = e; });
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  let a2hsTries = 0;
+  const tryShowA2HS = () => {
+    if(isStandaloneApp() || localStorage.getItem(LS_A2HS)) return;
+    /* تا آشنایی اولیه تموم نشده، مزاحم نشیم */
+    if(!localStorage.getItem(LS.onboardingDone) && a2hsTries++ < 30){ setTimeout(tryShowA2HS, 4000); return; }
+    if(!isIOS && !('onbeforeinstallprompt' in window) && !deferredInstall) return; /* مرورگرهایی که نصب ندارن */
+    localStorage.setItem(LS_A2HS, '1'); /* فقط همین یه بار پیشنهاد می‌دیم */
+    const banner = document.createElement('div');
+    banner.id = 'a2hs-banner';
+    const msg = isIOS
+      ? 'دماغ AI رو مثل یه اپ واقعی نصب کن! توی سافاری دکمه‌ی <b>اشتراک‌گذاری</b> رو بزن و <b>«Add to Home Screen»</b> رو انتخاب کن 📲'
+      : 'دماغ AI رو مثل یه اپ واقعی روی صفحه‌ی اصلی نصب کن! 📲';
+    banner.innerHTML = '<div class="a2hs-text">' + msg + '</div><div class="a2hs-btns">' +
+      (!isIOS ? '<button class="a2hs-install">نصب کن</button>' : '') +
+      '<button class="a2hs-close">بعداً</button></div>';
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('show'));
+    const hideBanner = () => { banner.classList.remove('show'); setTimeout(() => banner.remove(), 500); };
+    banner.querySelector('.a2hs-close').addEventListener('click', hideBanner);
+    const installBtn = banner.querySelector('.a2hs-install');
+    if(installBtn) installBtn.addEventListener('click', async () => {
+      if(deferredInstall){ deferredInstall.prompt(); try{ await deferredInstall.userChoice; }catch(e){} deferredInstall = null; }
+      else showToast('از منوی مرورگر گزینه‌ی «Add to Home Screen / نصب اپ» رو بزن 📲');
+      hideBanner();
+    });
+    setTimeout(hideBanner, 20000);
+  };
+  setTimeout(tryShowA2HS, 6000);
+})();
+
+/* -------- دکمه‌ی شناور برگشت به آخر گفتگو -------- */
+const scrollBottomBtn = document.createElement('button');
+scrollBottomBtn.id = 'scroll-bottom-btn';
+scrollBottomBtn.title = 'برو آخر گفتگو';
+scrollBottomBtn.setAttribute('aria-label', 'برو آخر گفتگو');
+scrollBottomBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>';
+document.body.appendChild(scrollBottomBtn);
+scrollBottomBtn.addEventListener('click', () => {
+  try{ chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: 'smooth' }); }
+  catch(e){ chatScroll.scrollTop = chatScroll.scrollHeight; }
+});
+chatScroll.addEventListener('scroll', () => {
+  const nearBottom = chatScroll.scrollHeight - chatScroll.scrollTop - chatScroll.clientHeight < 140;
+  scrollBottomBtn.classList.toggle('show', !nearBottom);
+}, { passive: true });
+
+/* ================================================================
    SECTION M3 — CANVAS PANEL
    ================================================================ */
 const canvasPanel = $('#canvas-panel');
@@ -3511,18 +4838,24 @@ $('#canvas-close-btn').addEventListener('click', closeCanvas);
 $('#menu-canvas-btn').addEventListener('click', () => { togglePlusMenu(false); openCanvas(canvasTextarea.value || ''); });
 $('#canvas-copy-btn').addEventListener('click', () => copyText(canvasTextarea.value));
 $('#canvas-download-btn').addEventListener('click', () => {
-  const blob = new Blob([canvasTextarea.value], { type:'text/plain' });
+  if(canvasPanel.classList.contains('draw-mode')){ $('#draw-save').click(); return; }
+  const content = canvasTextarea.value;
+  const looksLikeHTML = /<\/?[a-z][\s\S]*>/i.test(content);
+  const blob = new Blob([content], { type: looksLikeHTML ? 'text/html' : 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'namagh-canvas.txt';
+  a.download = looksLikeHTML ? 'namagh-canvas.html' : 'namagh-canvas.txt';
   a.click();
 });
 
 /* -------- run code: sandboxed iframe preview for simple HTML/CSS/JS -------- */
 function showCanvasTab(tab){
   canvasPanel.classList.toggle('preview-mode', tab === 'preview');
+  canvasPanel.classList.toggle('draw-mode', tab === 'draw');
   $('#canvas-tab-code').classList.toggle('active', tab === 'code');
   $('#canvas-tab-preview').classList.toggle('active', tab === 'preview');
+  $('#canvas-tab-draw').classList.toggle('active', tab === 'draw');
+  if(tab === 'draw') setTimeout(setupDrawCanvas, 80); /* بعد از نمایان شدن، اندازه‌ی درست رو بگیر */
 }
 function buildCanvasPreviewDoc(content){
   const looksLikeHTML = /<\/?[a-z][\s\S]*>/i.test(content) || /<!doctype/i.test(content);
@@ -3554,11 +4887,132 @@ $('#canvas-run-btn').addEventListener('click', () => {
 });
 $('#canvas-tab-code').addEventListener('click', () => showCanvasTab('code'));
 $('#canvas-tab-preview').addEventListener('click', () => {
-  if(!canvasPreview.srcdoc) { showCanvasTab('code'); showToast('اول بزن اجرا'); return; }
+  if(!canvasPreview.srcdoc){
+    /* مثل یه بوم واقعی: اگه کد هست، خودش اجرا می‌کنه */
+    if(canvasTextarea.value.trim()){ $('#canvas-run-btn').click(); return; }
+    showCanvasTab('code'); showToast('اول یه کدی بنویس'); return;
+  }
   showCanvasTab('preview');
+});
+$('#canvas-tab-draw').addEventListener('click', () => showCanvasTab('draw'));
+$('#canvas-expand-btn').addEventListener('click', () => {
+  canvasPanel.classList.toggle('maxed');
+  if(canvasPanel.classList.contains('draw-mode')) setTimeout(setupDrawCanvas, 550);
+});
+
+/* -------- نقاشی: موتور بوم واقعی (موس + لمس + قلم) -------- */
+const drawCanvas = $('#draw-canvas');
+const drawCtx = drawCanvas.getContext('2d');
+const DRAW_COLORS = ['#111111','#ef4444','#f97316','#fbbf24','#22c55e','#0ea5e9','#8b5cf6','#ec4899'];
+let drawColor = DRAW_COLORS[0], drawSize = 5, drawErasing = false, drawing = false, drawDirty = false;
+let drawUndoStack = [], drawCanvasReady = false;
+const drawColorsWrap = document.querySelector('.draw-colors');
+DRAW_COLORS.forEach((c, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'draw-color-dot' + (i === 0 ? ' active' : '');
+  dot.style.background = c;
+  dot.title = 'رنگ قلم';
+  dot.addEventListener('click', () => {
+    drawColor = c; drawErasing = false;
+    $('#draw-eraser').classList.remove('active');
+    drawColorsWrap.querySelectorAll('.draw-color-dot').forEach(d => d.classList.toggle('active', d === dot));
+  });
+  drawColorsWrap.appendChild(dot);
+});
+function setupDrawCanvas(){
+  const rect = drawCanvas.getBoundingClientRect();
+  if(rect.width < 10 || rect.height < 10) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = Math.round(rect.width * dpr), h = Math.round(rect.height * dpr);
+  if(drawCanvas.width === w && drawCanvas.height === h) return;
+  /* محتوای قبلی موقع تغییر اندازه حفظ می‌شه */
+  let prev = null;
+  if(drawCanvasReady && drawCanvas.width > 0 && drawCanvas.height > 0){
+    prev = document.createElement('canvas');
+    prev.width = drawCanvas.width; prev.height = drawCanvas.height;
+    prev.getContext('2d').drawImage(drawCanvas, 0, 0);
+  }
+  drawCanvas.width = w; drawCanvas.height = h;
+  drawCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, rect.width, rect.height);
+  if(prev) drawCtx.drawImage(prev, 0, 0, prev.width, prev.height, 0, 0, rect.width, rect.height);
+  drawCtx.lineCap = 'round'; drawCtx.lineJoin = 'round';
+  drawCanvasReady = true;
+}
+window.addEventListener('resize', () => { if(canvasPanel.classList.contains('draw-mode')) setupDrawCanvas(); });
+function drawPos(e){
+  const r = drawCanvas.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+function pushDrawUndo(){
+  try{
+    drawUndoStack.push(drawCanvas.toDataURL('image/png'));
+    if(drawUndoStack.length > 20) drawUndoStack.shift();
+  } catch(e){}
+}
+function clearDrawCanvas(){
+  const r = drawCanvas.getBoundingClientRect();
+  drawCtx.fillStyle = '#ffffff'; drawCtx.fillRect(0, 0, r.width, r.height);
+}
+drawCanvas.addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  setupDrawCanvas();
+  pushDrawUndo();
+  drawing = true; drawDirty = true;
+  try{ drawCanvas.setPointerCapture(e.pointerId); } catch(err){}
+  const p = drawPos(e);
+  drawCtx.beginPath(); drawCtx.moveTo(p.x, p.y);
+  drawCtx.strokeStyle = drawErasing ? '#ffffff' : drawColor;
+  drawCtx.lineWidth = drawErasing ? drawSize * 3 : drawSize;
+  drawCtx.lineTo(p.x + .01, p.y + .01); drawCtx.stroke(); /* تک‌کلیک = یه نقطه */
+});
+drawCanvas.addEventListener('pointermove', (e) => {
+  if(!drawing) return;
+  e.preventDefault();
+  const p = drawPos(e);
+  drawCtx.lineTo(p.x, p.y); drawCtx.stroke();
+});
+['pointerup','pointercancel'].forEach(ev => drawCanvas.addEventListener(ev, () => { drawing = false; }));
+$('#draw-size').addEventListener('input', function(){ drawSize = Number(this.value); });
+$('#draw-eraser').addEventListener('click', function(){
+  drawErasing = !drawErasing;
+  this.classList.toggle('active', drawErasing);
+});
+$('#draw-undo').addEventListener('click', () => {
+  const last = drawUndoStack.pop();
+  if(!last){ showToast('چیزی برای برگردوندن نیست'); return; }
+  const img = new Image();
+  img.onload = () => {
+    const r = drawCanvas.getBoundingClientRect();
+    clearDrawCanvas();
+    drawCtx.drawImage(img, 0, 0, img.width, img.height, 0, 0, r.width, r.height);
+  };
+  img.src = last;
+});
+$('#draw-clear').addEventListener('click', () => {
+  pushDrawUndo();
+  clearDrawCanvas();
+  drawDirty = false;
+});
+$('#draw-save').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = drawCanvas.toDataURL('image/png');
+  a.download = 'namagh-naghashi.png';
+  a.click();
 });
 
 $('#canvas-send-btn').addEventListener('click', () => {
+  if(canvasPanel.classList.contains('draw-mode')){
+    if(!drawDirty){ showToast('اول یه چیزی بکش 🎨'); return; }
+    const dataUrl = drawCanvas.toDataURL('image/png');
+    pendingImage = { mimeType: 'image/png', data: dataUrl.split(',')[1], previewUrl: dataUrl };
+    renderAttachPreview(); updatePlusMenuUI();
+    if(!msgInput.value.trim()) msgInput.value = 'این نقاشی منو ببین، نظرت چیه؟';
+    autoGrow();
+    sendMessage();
+    if(window.matchMedia('(max-width:880px)').matches) closeCanvas();
+    return;
+  }
   const content = canvasTextarea.value.trim();
   if(!content){ showToast('بوم خالیه که'); return; }
   msgInput.value = (msgInput.value.trim() ? msgInput.value.trim() + '\n\n' : '') + 'محتوای بوم رو بررسی کن:\n```\n' + content + '\n```';
